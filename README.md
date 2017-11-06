@@ -29,7 +29,7 @@ If you have no root access to your machine you might need to use virtualenv.
 
 ### Add a new tool
 
-For add a new tool edit ```clients.ini``` and add the name tool and the category tool
+To add a new tool edit ```clients.ini``` and add the name tool and the category tool
 
 ### Documentation
 
