@@ -7,7 +7,7 @@ Tool to generate python clients for EBI's tools
 
 Clone the repository:
 
-git clone https://github.com/ebi-wp/ebi-tools-generator.git
+```git clone https://github.com/ebi-wp/ebi-tools-generator.git```
 
 cd ebi-tools-generator
 
