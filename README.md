@@ -18,7 +18,7 @@ Now run the program to generate python clients for all supported EBI tools, they
 ```python ebitoolsgenerator.py```
 
 ### External dependencies
-For run the clients you need to install:
+To run the clients you need to install:
 
 ```pip install xmltramp2```
 
