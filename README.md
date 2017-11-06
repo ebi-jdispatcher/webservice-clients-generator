@@ -13,7 +13,7 @@ Install dependencies:
 
 ```pip install -r requirements.txt```
 
-Just run the script and you obtain all the python clients for each EBI Tool
+Now run the program to generate python clients for all supported EBI tools, they will be placed in the `dist` folder
 
 ```$ python ebitoolsgenerator.py```
 
