@@ -28,7 +28,7 @@ Run selected client. For example Clustal Omega:
 
 ```cd dist```
 
-```python clustalo_universal.py --email support@ebi.ac.uk --sequence sp:wap_rat,sp:wap_mouse```
+```python clustalo_universal.py --email support@ebi.ac.uk --sequence sp:wap_rat,sp:wap_mouse,sp:wap_pig```
 
 If you have no root access to your machine you might need to use [virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
 
