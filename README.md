@@ -17,13 +17,18 @@ Now run the program to generate python clients for all supported EBI tools, they
 
 ```python ebitoolsgenerator.py```
 
+### External dependencies
+For run the clients you need to install:
+
+```pip install xmltramp2```
+
 ### Test the results
 
 Run selected client. For example Clustal Omega:
 
 ```cd dist```
 
-```python clustalo_universal.py --email afoix@ebi.ac.uk --sequence sp:wap_rat,sp:wap_mouse```
+```python clustalo_universal.py --email support@ebi.ac.uk --sequence sp:wap_rat,sp:wap_mouse```
 
 If you have no root access to your machine you might need to use virtualenv.
 
