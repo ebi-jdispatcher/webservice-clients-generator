@@ -1,8 +1,6 @@
 # EBI Tools Generator
 Tool to generate python clients for EBI's tools
 
-### Overview
-
 ### How to use it
 
 Clone the repository:
