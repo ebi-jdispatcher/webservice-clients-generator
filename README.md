@@ -7,7 +7,7 @@ Clone the repository:
 
 ```git clone https://github.com/ebi-wp/ebi-tools-generator.git```
 
-cd ebi-tools-generator
+```cd ebi-tools-generator```
 
 Install dependencies:
 
@@ -29,7 +29,7 @@ If you have no root access to your machine you might need to use virtualenv.
 
 ### Add a new tool
 
-To add a new tool edit ```clients.ini``` and add the name tool and the category tool
+To add a new tool edit ```clients.ini``` , add the name tool and the category tool
 
 ### Documentation
 
