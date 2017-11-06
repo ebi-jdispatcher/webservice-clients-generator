@@ -5,25 +5,25 @@ Tool to generate python clients for EBI's tools
 
 Clone the repository:
 
-```$ git clone https://github.com/ebi-wp/ebi-tools-generator.git```
+```git clone https://github.com/ebi-wp/ebi-tools-generator.git```
 
-```$ cd ebi-tools-generator```
+```cd ebi-tools-generator```
 
 Install dependencies:
 
-```$ pip install -r requirements.txt```
+```pip install -r requirements.txt```
 
 Now run the program to generate python clients for all supported EBI tools, they will be placed in the `dist` folder
 
-```$ python ebitoolsgenerator.py```
+```python ebitoolsgenerator.py```
 
 ### Test the results
 
 Run selected client. For example Clustal Omega:
 
-```$ cd dist```
+```cd dist```
 
-```$ python clustalo_universal.py --email afoix@ebi.ac.uk --sequence sp:wap_rat,sp:wap_mouse```
+```python clustalo_universal.py --email afoix@ebi.ac.uk --sequence sp:wap_rat,sp:wap_mouse```
 
 If you have no root access to your machine you might need to use virtualenv.
 
