@@ -1,5 +1,5 @@
-# EBI Tools Generator
-Tool to generate python clients for EBI's tools
+# Web Service Client Generator
+Tool to generate Python clients for EBI's Job Dispatcher Web Service tools.
 
 ### How to use it
 
@@ -47,3 +47,9 @@ To add a new tool edit `clients.ini` , add the name tool and the category tool.
 ### Documentation
 
 More documentation about the tools in [EBI Tools](https://www.ebi.ac.uk/seqdb/confluence/display/WEBSERVICES/EMBL-EBI+Web+Services)
+
+
+## Contact and Support
+
+If you have any problems, suggestions or comments for our services please
+contact us via [EBI Support](http://www.ebi.ac.uk/support/index.php?query=WebServices).
