@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function
 
 import os
@@ -6,9 +9,7 @@ import xml.etree.ElementTree as ET
 
 import configparser
 import requests
-from future.utils import viewitems
 from jinja2 import Environment, FileSystemLoader
-
 
 # Wrapper for a REST (HTTP GET) request
 def restRequest(url):
@@ -64,7 +65,7 @@ def write_client(name, filename, contents):
     dir = u'./dist'
     if not os.path.isdir(dir):
         os.mkdir(dir)
-    with open(u'{}/{}_universal.py'.format(dir, name), 'w') as fh:
+    with open(u'{}/{}_client.py'.format(dir, name), 'w') as fh:
         fh.write(contents)
 
 
@@ -92,7 +93,7 @@ if __name__ == u'__main__':
         for option in parser[idtool]:
             tool[option] = parser.get(idtool, option)
 
-        for (name, parameter) in viewitems(parameters):
+        for (name, parameter) in parameters.items():
             tool[u'options'].append(fetch_option(name, parameter))
             tool[u'types'].append(fetch_type(name, parameter))
 
