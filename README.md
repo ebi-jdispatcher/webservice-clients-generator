@@ -7,7 +7,7 @@ This repository allow auto-generation of Python clients for EBI's Job Dispatcher
 Clone the repository:
 
 ```bash
-git clone https://github.com/ebi-wp/ebi-tools-generator.git
+git clone https://github.com/ebi-wp/webservice-client-generator.git
 cd ebi-tools-generator
 ```
 
@@ -21,13 +21,6 @@ Now run the program to generate python clients for all supported EBI tools, they
 
 ```bash
 python ebitoolsgenerator.py
-```
-
-## External dependencies
-To run the clients you need to install:
-
-```bash
-pip install xmltramp2
 ```
 
 ## Test the results
