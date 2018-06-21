@@ -1,7 +1,7 @@
 # Web Service Client Generator
 Tool to generate Python clients for EBI's Job Dispatcher Web Service tools.
 
-### How to use it
+## How to use it
 
 Clone the repository:
 
@@ -22,14 +22,14 @@ Now run the program to generate python clients for all supported EBI tools, they
 python ebitoolsgenerator.py
 ```
 
-### External dependencies
+## External dependencies
 To run the clients you need to install:
 
 ```bash
 pip install xmltramp2
 ```
 
-### Test the results
+## Test the results
 
 Run selected client. For example Clustal Omega:
 
@@ -40,11 +40,11 @@ python clustalo_client.py --email support@ebi.ac.uk --sequence sp:wap_rat,sp:wap
 
 If you have no root access to your machine you might need to use [virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
 
-### Add a new tool
+## Add a new tool
 
 To add a new tool edit `clients.ini` , add the name tool and the category tool.
 
-### Documentation
+## Documentation
 
 More documentation about the tools in [EBI Tools](https://www.ebi.ac.uk/seqdb/confluence/display/WEBSERVICES/EMBL-EBI+Web+Services)
 
