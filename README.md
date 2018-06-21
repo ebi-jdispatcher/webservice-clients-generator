@@ -1,5 +1,6 @@
 # Web Service Client Generator
-Tool to generate Python clients for EBI's Job Dispatcher Web Service tools.
+
+This repository allow auto-generation of Python clients for EBI's Job Dispatcher Web Service tools.
 
 ## How to use it
 
