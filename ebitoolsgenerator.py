@@ -80,7 +80,7 @@ if __name__ == u'__main__':
         tool = {u'id': idtool,
                 u'url': u'http://www.ebi.ac.uk/Tools/services/rest/{}'.format(
                     idtool),
-                u'filename': u'{}_universal.py'.format(idtool),
+                u'filename': u'{}_client.py'.format(idtool),
                 u'version': subprocess.check_output(
                     [u'git', u'describe', u'--always']).strip()
                 .decode('UTF-8'),
