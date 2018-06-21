@@ -4,12 +4,12 @@
 from __future__ import print_function
 
 import os
-import subprocess
-import xml.etree.ElementTree as ET
-
-import configparser
 import requests
+import subprocess
+import configparser
+import xml.etree.ElementTree as ET
 from jinja2 import Environment, FileSystemLoader
+
 
 # Wrapper for a REST (HTTP GET) request
 def restRequest(url):
