@@ -17,7 +17,7 @@ def restRequest(url):
 
 
 def escape(string):
-    return string.replace('\'', '\\\'')\
+    return string.replace('\'', '\\\'') \
         .replace('\n', '\\\n').replace('\t', '\\\t')
 
 
@@ -29,6 +29,7 @@ def tool_from(url):
 
 def parameters_of(url):
     response = restRequest(url + u'/parameters')
+    print("Generating Python client for %s" % url)
     params = ET.fromstring(response)
     return {param.text: details_of(url, param.text) for param in params}
 
@@ -57,6 +58,7 @@ def fetch_type(name, parameter):
         return u'''    if options.{0}:
             params['{0}'] = options.{0}'''.format(name)
 
+
 def generate_client(tool, template):
     return template.render(tool=tool)
 
@@ -70,8 +72,8 @@ def write_client(name, filename, contents):
 
 
 if __name__ == u'__main__':
-    template = Environment(loader=FileSystemLoader(u'.'))\
-            .get_template(u'client.py.j2')
+    template = Environment(loader=FileSystemLoader(u'.')) \
+        .get_template(u'client.py.j2')
 
     parser = configparser.ConfigParser()
     parser.read(u'clients.ini')
@@ -84,7 +86,7 @@ if __name__ == u'__main__':
                 u'filename': u'{}_client.py'.format(idtool),
                 u'version': subprocess.check_output(
                     [u'git', u'describe', u'--always']).strip()
-                .decode('UTF-8'),
+                    .decode('UTF-8'),
                 u'options': [],
                 u'types': []}
 
