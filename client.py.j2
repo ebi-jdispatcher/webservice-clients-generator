@@ -322,10 +322,11 @@ def getResult(jobId):
     for resultType in resultTypes:
         # Derive the filename for the result
         if options.outfile:
-            filename = options.outfile + u'.' + unicode(resultType[u'identifier']) + u'.' + unicode(
-                resultType[u'fileSuffix'])
+            filename = (options.outfile + u'.' + unicode(resultType[u'identifier']) +
+                        u'.' + unicode(resultType[u'fileSuffix']))
         else:
-            filename = jobId + u'.' + unicode(resultType[u'identifier']) + u'.' + unicode(resultType[u'fileSuffix'])
+            filename = (jobId + u'.' + unicode(resultType[u'identifier']) +
+                        u'.' + unicode(resultType[u'fileSuffix']))
         # Write a result file
 
         outformat_parm = str(options.outformat).split(',')
