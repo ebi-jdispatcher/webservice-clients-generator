@@ -4,6 +4,7 @@
 from __future__ import print_function
 
 import os
+import textwrap
 import requests
 import subprocess
 import configparser
@@ -17,8 +18,8 @@ def restRequest(url):
 
 
 def escape(string):
-    return string.replace('\'', '\\\'') \
-        .replace('\n', '\\\n').replace('\t', '\\\t')
+    return " ".join(string.replace('\r\n', ' ').replace('\r', ' ').
+                    replace('\n', ' ').replace('\t', ' ').strip().split())
 
 
 def tool_from(url):
@@ -29,7 +30,6 @@ def tool_from(url):
 
 def parameters_of(url):
     response = restRequest(url + u'/parameters')
-    print("Generating Python client for %s" % url)
     params = ET.fromstring(response)
     return {param.text: details_of(url, param.text) for param in params}
 
@@ -40,38 +40,40 @@ def details_of(url, param_name):
     return [detail.text for detail in details]
 
 
-def fetch_option(name, parameter):
-    param = dict()
-    param[u'name'] = name
-    param[u'help'] = escape(parameter[1])
-    return param
+def fetch_python_options(name, parameter):
+    return ("parser.add_option('--%s', help=('%s'))"
+            "" % (name, "'\n                  '".\
+                  join(textwrap.wrap(escape(parameter[1]).strip(), width=70))))
 
 
-def fetch_type(name, parameter):
+def fetch_python_types(name, parameter):
     type = parameter[2]
     if type == u'BOOLEAN':
-        return u'''    if options.{0}:
+        return u'''\
+    if options.{0}:
         params['{0}'] = True
     else:
         params['{0}'] = False'''.format(name)
     else:
-        return u'''    if options.{0}:
-            params['{0}'] = options.{0}'''.format(name)
+        return u'''\
+    if options.{0}:
+        params['{0}'] = options.{0}'''.format(name)
 
 
 def generate_client(tool, template):
     return template.render(tool=tool)
 
 
-def write_client(name, filename, contents):
+def write_client(filename, contents):
     dir = u'./dist'
     if not os.path.isdir(dir):
         os.mkdir(dir)
-    with open(u'{}/{}_client.py'.format(dir, name), 'w') as fh:
+    with open(u'{}/{}'.format(dir, filename), 'w') as fh:
         fh.write(contents)
 
 
 if __name__ == u'__main__':
+    # Python clients
     template = Environment(loader=FileSystemLoader(u'.')) \
         .get_template(u'client.py.j2')
 
@@ -83,7 +85,7 @@ if __name__ == u'__main__':
         tool = {u'id': idtool,
                 u'url': u'http://www.ebi.ac.uk/Tools/services/rest/{}'.format(
                     idtool),
-                u'filename': u'{}_client.py'.format(idtool),
+                u'filename': u'{}.py'.format(idtool),
                 u'version': subprocess.check_output(
                     [u'git', u'describe', u'--always']).strip()
                     .decode('UTF-8'),
@@ -95,10 +97,13 @@ if __name__ == u'__main__':
         for option in parser[idtool]:
             tool[option] = parser.get(idtool, option)
 
+        options = []
         for (name, parameter) in parameters.items():
-            tool[u'options'].append(fetch_option(name, parameter))
-            tool[u'types'].append(fetch_type(name, parameter))
+            options.append(fetch_python_options(name, parameter))
+            tool[u'types'].append(fetch_python_types(name, parameter))
 
+        tool[u'options'] = "\n".join(options)
         contents = generate_client(tool, template)
 
-        write_client(tool[u'id'], tool[u'filename'], contents)
+        write_client(tool[u'filename'], contents)
+        print("Generating Python client for %s" % tool['url'])

@@ -4,7 +4,9 @@
 ###############################################################################
 #
 # Python Client Automatically generated with:
-# https://github.com/ebi-wp/webservice-client-generator
+# https://github.com/ebi-wp/webservice-clients-generator
+#
+# {{  tool.name }} (REST) web service Python client.
 #
 # Copyright (C) 2006-2018 EMBL - European Bioinformatics Institute
 # Under GNU GPL v3 License - See LICENSE for more details!
@@ -56,9 +58,9 @@ parser = OptionParser(usage=usage, description=description, epilog=epilog, versi
 
 # Tool specific options (Try to print all the commands automatically)
 
-{% for option in tool.options -%}
-parser.add_option('--{{ option.name }}', help='{{ option.help }}')
-{% endfor -%}
+{%- if tool.options is defined %}
+{{ tool.options }}
+{% endif -%}
 
 # General options
 parser.add_option('--email', help='e-mail address')
