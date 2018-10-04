@@ -100,11 +100,10 @@ def generate_client(tool, template):
     return template.render(tool=tool)
 
 
-def write_client(filename, contents):
-    dir = u'./dist'
+def write_client(filename, contents, dir="dist"):
     if not os.path.isdir(dir):
         os.mkdir(dir)
-    with open(u'{}/{}'.format(dir, filename), 'w') as fh:
+    with open(os.path.join(dir, filename), 'w') as fh:
         fh.write(contents)
 
 
@@ -116,7 +115,7 @@ def main(lang, client="all"):
     if "python" in lang:
         # Python clients
         template = Environment(loader=FileSystemLoader(u'.')) \
-            .get_template(u'client.py.j2')
+            .get_template(os.path.join('templates', 'python', 'client.py.j2'))
 
         parser = configparser.ConfigParser()
         parser.read(u'clients.ini')
@@ -152,7 +151,7 @@ def main(lang, client="all"):
     if "perl" in lang:
         # Perl clients
         template = Environment(loader=FileSystemLoader(u'.')) \
-            .get_template(u'client.pl.j2')
+            .get_template(os.path.join('templates', 'perl', 'client.pl.j2'))
 
         parser = configparser.ConfigParser()
         parser.read(u'clients.ini')
