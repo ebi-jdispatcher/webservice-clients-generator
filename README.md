@@ -33,16 +33,22 @@ All available clients are listed in [clients.ini](clients.ini).
 
 ## Generating clients
 
-Run the following command to generate Python for all the Bioinformatics tools provided. 
+Run the following commands to generate Python and Perl clients for all the Bioinformatics tools provided. 
 
 ```bash
+# only python clients
 python clientsgenerator.py python
+```
+
+```bash
+# python and perl clients
+python clientsgenerator.py python,perl
 ```
 
 Alternatively, use `--client <client_name>` to get only a selected client. 
 
 ```bash
-python clientsgenerator.py python --client clustalo
+python clientsgenerator.py python,perl --client clustalo
 ```
 
 ## Running the generated clients
@@ -50,6 +56,17 @@ python clientsgenerator.py python --client clustalo
 ### Python clients
 
 The same `virtualenv` use to run the generator tool will have all the requirements to run the Python clients.
+
+### Perl clients
+
+In order to run Perl clients, Perl (tested version 5.22.0) needs to installed as well as two dependencies 
+(LWP and XML::Simple). Install these with:
+
+```bash
+# To install perl dependencies (you might need sudo)
+cpan LWP
+cpan XML::Simple
+```
 
 ## Test the results
 
