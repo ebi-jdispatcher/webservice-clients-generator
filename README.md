@@ -86,6 +86,7 @@ needs to installed.
 
 The Java source code needs to be compiled with `ant` as follows:
 ```bash
+# if ant build fails on the first run, try the command again
 cd dist && ant -lib lib && rm -rf bin lib && cd -
 ```
 
