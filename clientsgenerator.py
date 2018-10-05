@@ -68,7 +68,8 @@ def fetch_perl_options(name, parameter):
                  ((15 - len(name)) * " "), escape(parameter[1]).strip()))
     else:
         return ("    '%s%s'%s=> \$params{'%s'},%s# %s" %
-                (name, ("=" + "%s" % parameter[2][0].lower()), ((14 - len(name)) * " "), name,
+                (name, ("=" + "%s" % parameter[2][0].lower().replace("c", "s")),
+                 ((14 - len(name)) * " "), name,
                  ((15 - len(name)) * " "), escape(parameter[1]).strip()))
 
 
@@ -76,14 +77,15 @@ def fetch_perl_usage(name, parameter):
     if parameter[2] == u'BOOLEAN':
         return ("  --%s : %s : %s" %
                 (name + (19 - len(name)) * " ", "bool" + (4 - len("bool")) * " ",
-                 "\n                                 ".\
-                    join(textwrap.wrap(escape(parameter[1]).strip(), width=70))))
+                 "\n                                 ". \
+                 join(textwrap.wrap(escape(parameter[1]).strip(), width=70))))
     else:
         return ("  --%s : %s : %s" %
                 (name + (19 - len(name)) * " ", "%s " %
-                 (parameter[2][0:3].lower().replace("seq", "str").replace("dou", "int")),
-                 "\n                                 ".\
-                    join(textwrap.wrap(escape(parameter[1]).strip(), width=70))))
+                 (parameter[2][0:3].lower().
+                  replace("seq", "str").replace("dou", "int").replace("com", "str")),
+                 "\n                                 ". \
+                 join(textwrap.wrap(escape(parameter[1]).strip(), width=70))))
 
 
 def fetch_perl_types(name):
@@ -157,7 +159,7 @@ def main(lang, client="all"):
         parser = configparser.ConfigParser()
         parser.read(u'clients.ini')
         for idtool in parser.keys():
-            if client.lower() == "all" or client.lower() == idtool:
+            if "all" in client or idtool in client:
                 if idtool == u'DEFAULT':
                     continue
                 tool = {u'id': idtool,
@@ -177,7 +179,7 @@ def main(lang, client="all"):
                 for option in parser[idtool]:
                     tool[option] = parser.get(idtool, option)
 
-                options, usage, checks= [], [], []
+                options, usage, checks = [], [], []
                 for (name, parameter) in parameters.items():
                     options.append(fetch_perl_options(name, parameter))
                     usage.append(fetch_perl_usage(name, parameter))
@@ -189,9 +191,9 @@ def main(lang, client="all"):
                 tool[u'checks'] = "\n".join(checks)
 
                 contents = generate_client(tool, template)
-
                 write_client(tool[u'filename'], contents)
-                print("Generating Perl client for %s" % tool['url'])
+                print("Generated Perl client for %s" % tool['url'])
+
     if "java" in lang:
         print("%s not yet implemented" % lang)
 
