@@ -4,10 +4,12 @@
 from __future__ import print_function
 
 import os
+import shutil
 import textwrap
 import requests
 import subprocess
 import configparser
+from functools import reduce
 import xml.etree.ElementTree as ET
 from jinja2 import Environment, FileSystemLoader
 import easyargs
@@ -98,6 +100,21 @@ def fetch_perl_types(name):
     }''' % (name, name, name)
 
 
+def fetch_java_clients(name):
+    return u'''\
+        <antcall target="jar-client">
+            <param name="client" value="%s"/>
+        </antcall>''' % name
+
+
+def fetch_java_message(name, parameter):
+    return u'''--%s%s\t%s%s\t%s''' % \
+           (name, (17 - len(name)) * " ",
+            parameter[2].lower().replace("sequence", "string"),
+            (7 - len(parameter[2].lower().replace("sequence", "string"))) * " ",
+            escape(parameter[1]).strip())
+
+
 def generate_client(tool, template):
     return template.render(tool=tool)
 
@@ -107,6 +124,27 @@ def write_client(filename, contents, dir="dist"):
         os.mkdir(dir)
     with open(os.path.join(dir, filename), 'w') as fh:
         fh.write(contents)
+
+
+def write_java_tool_files(filename, contents):
+    with open(filename, "w") as outlines:
+        outlines.write(contents)
+
+
+def copy_java_build_contents(src, dest="dist"):
+    dest = os.path.join(os.getcwd(), dest)
+    os.makedirs(os.path.join(dest, "src", "restclient", "stubs"), exist_ok=True)
+    os.makedirs(os.path.join(dest, "bin", "tools"), exist_ok=True)
+    files = []
+    for (dirpath, dirnames, filenames) in os.walk(src):
+        files += [reduce(os.path.join, os.path.join(dirpath, file).split(os.sep)[2:])
+                  for file in filenames if not file.endswith(".j2")]
+    for file in files:
+        s = os.path.join(src, file)
+        d = os.path.join(dest, file)
+        if os.path.exists(d):
+            os.remove(d)
+        shutil.copy2(s, d)
 
 
 @easyargs
@@ -195,7 +233,56 @@ def main(lang, client="all"):
                 print("Generated Perl client for %s" % tool['url'])
 
     if "java" in lang:
-        print("%s not yet implemented" % lang)
+        # Java clients
+        copy_java_build_contents(os.path.join('templates', 'java'))
+
+        template = Environment(loader=FileSystemLoader(u'.')) \
+            .get_template(os.path.join('templates', 'java', 'src',
+                                       'restclient', 'RestClient.java.j2'))
+
+        template_xml = Environment(loader=FileSystemLoader(u'.')) \
+            .get_template(os.path.join('templates', 'java', 'build.xml.j2'))
+
+        buildxml = {"filename": u'build.xml'}
+        clients, targets = [], []
+        parser = configparser.ConfigParser()
+        parser.read(u'clients.ini')
+        for idtool in parser.keys():
+            if "all" in client or idtool in client:
+                if idtool == u'DEFAULT':
+                    continue
+                tool = {u'id': idtool,
+                        u'hostname': u'www.ebi.ac.uk',
+                        u'url': u'http://www.ebi.ac.uk/Tools/services/rest/{}'.format(
+                            idtool),
+                        u'filename': os.path.join('src', 'restclient',
+                                                  u'RestClient.java'),
+                        }
+
+                tool[u'description'], parameters = tool_from(tool[u'url'])
+
+                for option in parser[idtool]:
+                    tool[option] = parser.get(idtool, option)
+
+                messages = []
+                for (name, parameter) in parameters.items():
+                    messages.append(fetch_java_message(name, parameter))
+
+                write_java_tool_files(os.path.join("dist", "bin", "tools", "%s_req.txt" % idtool),
+                                      " --email             \tstring\tUser email address")
+                write_java_tool_files(os.path.join("dist", "bin", "tools", "%s_opt.txt" % idtool),
+                                      "\n".join(messages))
+                write_java_tool_files(os.path.join("dist", "bin", "tools", "%s.txt" % idtool),
+                                      "%s\n%s\n%s" % (idtool, tool["name"], tool["description"]))
+
+                contents = generate_client(tool, template)
+                write_client(tool[u'filename'], contents)
+                clients.append(fetch_java_clients(idtool))
+                print("Generated Java client for %s" % tool['url'])
+
+        buildxml["clients"] = "\n".join(clients)
+        contents_xml = generate_client(buildxml, template_xml)
+        write_client(buildxml[u'filename'], contents_xml)
 
 
 if __name__ == u'__main__':

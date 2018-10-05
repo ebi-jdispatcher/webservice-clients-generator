@@ -1,0 +1,87 @@
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="ebiRestClients" default="main" basedir=".">
+    <description>
+        Create a Java Project (JAR) with Ant build script
+    </description>
+    
+    <property name="src.dir" location="src"/>
+    <property name="dist.dir" location="./"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="build.dir" location="bin"/>
+
+    <!-- Add new tool HERE -->
+    <target name="jar" depends="compile, copy-dependencies" description="package, output to JAR">
+
+        <copy file="src/logback.xml" tofile="${build.dir}/logback.xml"></copy>
+
+{%- if tool.clients is defined %}
+{{ tool.clients }}
+{% endif -%}
+    </target>
+
+    <!-- Package project files with sources -->
+    <target name="sources">
+        <zip destfile="${lib.dir}/rest-sources.zip"
+             basedir="."
+             excludes="bin/**, dist/**, output/**, resources/**, target/**, java-rest-ant.iml"
+        />
+    </target>
+
+    <!-- ivy start -->
+    <!-- ivy to get dependencies and copy to project lib folder -->
+    <target name="resolve" depends="ivy" description="retrieve dependencies with ivy">
+        <ivy:retrieve/>
+    </target>
+
+    <!-- install ivy -->
+    <target name="ivy" description="Install ivy">
+        <mkdir dir="${user.home}/.ant/lib"/>
+        <get dest="${user.home}/.ant/lib/ivy.jar"
+             src="http://search.maven.org/remotecontent?filepath=org/apache/ivy/ivy/2.4.0-rc1/ivy-2.4.0-rc1.jar"/>
+    </target>
+    <!-- ivy end -->
+
+    <target name="init-dirs" depends="resolve">
+        <mkdir dir="${build.dir}"/>
+    </target>
+
+    <path id="classpath">
+        <fileset dir="${basedir}/">
+            <include name="${lib.dir}/*.jar"/>
+        </fileset>
+    </path>
+
+    <!-- Need classpath to run this -->
+    <target name="compile" depends="init-dirs" description="compile the source ">
+        <javac includeantruntime="false" srcdir="${src.dir}" destdir="${build.dir}" classpathref="classpath"/>
+    </target>
+
+    <!-- Group all dependencies into a big dependency.jar -->
+    <target name="copy-dependencies">
+
+        <mkdir dir="${lib.dir}"/>
+        <jar jarfile="${lib.dir}/dependencies-all.jar">
+            <zipgroupfileset dir="${lib.dir}">
+                <include name="**/*.jar"/>
+            </zipgroupfileset>
+        </jar>
+    </target>
+
+    <!-- A template to generate a Jar file -->
+    <target name="jar-client">
+        <jar jarfile="${dist.dir}/${client}.jar"
+             basedir="${build.dir}"
+             includes="logback.xml tools/** restclient/** restclient/stubs/**">
+            <manifest>
+                <attribute name="Main-Class" value="restclient.RestClient"/>
+            </manifest>
+            <zipfileset src="${lib.dir}/dependencies-all.jar" excludes="META-INF/*.SF"/>
+        </jar>
+    </target>
+
+    <target name="clean" description="clean up">
+    </target>
+
+    <!-- Default, run this -->
+    <target name="main" depends="clean, compile, jar, sources"/>
+
+</project>
