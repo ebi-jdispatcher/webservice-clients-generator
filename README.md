@@ -33,7 +33,7 @@ All available clients are listed in [clients.ini](clients.ini).
 
 ## Generating clients
 
-Run the following commands to generate Python and Perl clients for all the Bioinformatics tools provided. 
+Run the following commands to generate Python, Perl and Java clients for all the Bioinformatics tools provided. 
 
 ```bash
 # only python clients
@@ -42,13 +42,13 @@ python clientsgenerator.py python
 
 ```bash
 # python and perl clients
-python clientsgenerator.py python,perl
+python clientsgenerator.py python,perl,java
 ```
 
 Alternatively, use `--client <client_name>` to get only a selected client. 
 
 ```bash
-python clientsgenerator.py python,perl --client clustalo
+python clientsgenerator.py python,perl,java --client clustalo
 ```
 
 ## Running the generated clients
@@ -56,6 +56,11 @@ python clientsgenerator.py python,perl --client clustalo
 ### Python clients
 
 The same `virtualenv` use to run the generator tool will have all the requirements to run the Python clients.
+An example test for Clustal Omega Python client:
+
+```bash
+python dist/clustalo.py --email <your@email.com> --sequence sp:wap_rat,sp:wap_mouse,sp:wap_pig
+```
 
 ### Perl clients
 
@@ -63,17 +68,31 @@ In order to run Perl clients, Perl (tested version 5.22.0) needs to installed as
 (LWP and XML::Simple). Install these with:
 
 ```bash
-# To install perl dependencies (you might need sudo)
+# To install Perl dependencies run (you might need sudo)
 cpan LWP
 cpan XML::Simple
 ```
 
-## Test the results
-
-An example test for Clustal Omega Python client:
+An example test for Clustal Omega Perl client:
 
 ```bash
-python dist/clustalo.py --email <your@email.com> --sequence sp:wap_rat,sp:wap_mouse,sp:wap_pig
+perl dist/clustalo.pl --email <your@email.com> --sequence sp:wap_rat,sp:wap_mouse,sp:wap_pig
+```
+
+### Java clients
+
+In order to run Java clients, Java (tested version 1.8.0_161") as well as ant (tested version 1.10.5), 
+needs to installed. 
+
+The Java source code needs to be compiled with `ant` as follows:
+```bash
+cd dist && ant -lib lib && rm -rf bin lib && cd -
+```
+
+An example test for Clustal Omega Java client:
+
+```bash
+java -jar dist/clustalo.jar --email <your@email.com> --sequence sp:wap_rat,sp:wap_mouse,sp:wap_pig
 ```
 
 ## Documentation
