@@ -103,4 +103,4 @@ More documentation about [EMBL-EBI Bioinformatics Web Services](https://www.ebi.
 ## Contact and Support
 
 If you have any problems, suggestions or comments for our services please
-contact us via [EBI Support](http://www.ebi.ac.uk/support/index.php?query=WebServices).
+contact us via [EBI Support](https://www.ebi.ac.uk/support/index.php?query=WebServices).

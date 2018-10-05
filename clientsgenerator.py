@@ -151,6 +151,7 @@ def copy_java_build_contents(src, dest="dist"):
 def main(lang, client="all"):
     """Generates clients in 'Python', 'Perl' or 'Java'"""
 
+    baseurl = "https://www.ebi.ac.uk/Tools/services/rest/"
     lang = lang.lower().split(",")
     client = client.lower().split(",")
     if "python" in lang:
@@ -165,8 +166,7 @@ def main(lang, client="all"):
                 if idtool == u'DEFAULT':
                     continue
                 tool = {u'id': idtool,
-                        u'url': u'http://www.ebi.ac.uk/Tools/services/rest/{}'.format(
-                            idtool),
+                        u'url': u'{}{}'.format(baseurl, idtool),
                         u'filename': u'{}.py'.format(idtool),
                         u'version': subprocess.check_output(
                             [u'git', u'describe', u'--always']).strip()
@@ -201,8 +201,7 @@ def main(lang, client="all"):
                 if idtool == u'DEFAULT':
                     continue
                 tool = {u'id': idtool,
-                        u'url': u'http://www.ebi.ac.uk/Tools/services/rest/{}'.format(
-                            idtool),
+                        u'url': u'{}{}'.format(baseurl, idtool),
                         u'filename': u'{}.pl'.format(idtool),
                         u'version': subprocess.check_output(
                             [u'git', u'describe', u'--always']).strip()
@@ -253,8 +252,7 @@ def main(lang, client="all"):
                     continue
                 tool = {u'id': idtool,
                         u'hostname': u'www.ebi.ac.uk',
-                        u'url': u'http://www.ebi.ac.uk/Tools/services/rest/{}'.format(
-                            idtool),
+                        u'url': u'{}{}'.format(baseurl, idtool),
                         u'filename': os.path.join('src', 'restclient',
                                                   u'RestClient.java'),
                         }
