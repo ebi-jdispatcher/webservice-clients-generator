@@ -43,8 +43,8 @@ def details_of(url, param_name):
 
 def fetch_python_options(name, parameter):
     return ("parser.add_option('--%s', help=('%s'))"
-            "" % (name, "'\n                  '".\
-                  join(textwrap.wrap(escape(parameter[1]).strip(), width=70))))
+            "" % (name, "'\n                  '". \
+                  join(textwrap.wrap(escape(parameter[1]).strip().replace("'", ""), width=70))))
 
 
 def fetch_python_types(name, parameter):
@@ -112,6 +112,7 @@ def main(lang, client="all"):
     """Generates clients in 'Python', 'Perl' or 'Java'"""
 
     lang = lang.lower().split(",")
+    client = client.lower().split(",")
     if "python" in lang:
         # Python clients
         template = Environment(loader=FileSystemLoader(u'.')) \
@@ -120,7 +121,7 @@ def main(lang, client="all"):
         parser = configparser.ConfigParser()
         parser.read(u'clients.ini')
         for idtool in parser.keys():
-            if client.lower() == "all" or client.lower() == idtool:
+            if "all" in client or idtool in client:
                 if idtool == u'DEFAULT':
                     continue
                 tool = {u'id': idtool,
@@ -145,9 +146,9 @@ def main(lang, client="all"):
 
                 tool[u'options'] = "\n".join(options)
                 contents = generate_client(tool, template)
-
                 write_client(tool[u'filename'], contents)
-                print("Generating Python client for %s" % tool['url'])
+                print("Generated Python client for %s" % tool['url'])
+
     if "perl" in lang:
         # Perl clients
         template = Environment(loader=FileSystemLoader(u'.')) \
