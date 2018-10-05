@@ -187,7 +187,7 @@ def main(lang, client="all"):
                 tool[u'options'] = "\n".join(options)
                 contents = generate_client(tool, template)
                 write_client(tool[u'filename'], contents)
-                print("Generated Python client for %s" % tool['url'])
+                print("Generated Python client for %s" % tool['url'], flush=True)
 
     if "perl" in lang:
         # Perl clients
@@ -229,7 +229,7 @@ def main(lang, client="all"):
 
                 contents = generate_client(tool, template)
                 write_client(tool[u'filename'], contents)
-                print("Generated Perl client for %s" % tool['url'])
+                print("Generated Perl client for %s" % tool['url'], flush=True)
 
     if "java" in lang:
         # Java clients
@@ -276,7 +276,7 @@ def main(lang, client="all"):
                 contents = generate_client(tool, template)
                 write_client(tool[u'filename'], contents)
                 clients.append(fetch_java_clients(idtool))
-                print("Generated Java client for %s" % tool['url'])
+                print("Generated Java client for %s" % tool['url'], flush=True)
 
         buildxml["clients"] = "\n".join(clients)
         contents_xml = generate_client(buildxml, template_xml)
