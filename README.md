@@ -41,7 +41,7 @@ python clientsgenerator.py python
 ```
 
 ```bash
-# python and perl clients
+# python, perl and java clients
 python clientsgenerator.py python,perl,java
 ```
 
