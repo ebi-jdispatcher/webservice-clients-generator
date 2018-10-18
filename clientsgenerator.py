@@ -70,7 +70,7 @@ def fetch_perl_options(name, parameter):
                  ((15 - len(name)) * " "), escape(parameter[1]).strip()))
     else:
         return ("    '%s%s'%s=> \$params{'%s'},%s# %s" %
-                (name, ("=" + "%s" % parameter[2][0].lower().replace("c", "s")),
+                (name, ("=" + "%s" % parameter[2][0].lower().replace("c", "s").replace("d", "f")),
                  ((14 - len(name)) * " "), name,
                  ((15 - len(name)) * " "), escape(parameter[1]).strip()))
 
@@ -85,7 +85,7 @@ def fetch_perl_usage(name, parameter):
         return ("  --%s : %s : %s" %
                 (name + (19 - len(name)) * " ", "%s " %
                  (parameter[2][0:3].lower().
-                  replace("seq", "str").replace("dou", "int").replace("com", "str")),
+                  replace("seq", "str").replace("dou", "flo").replace("com", "str")),
                  "\n                                 ". \
                  join(textwrap.wrap(escape(parameter[1]).strip(), width=70))))
 
