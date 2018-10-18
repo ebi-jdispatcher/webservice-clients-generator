@@ -65,11 +65,11 @@ def fetch_python_types(name, parameter):
 
 def fetch_perl_options(name, parameter):
     if parameter[2] == u'BOOLEAN':
-        return ("    '%s%s'%s=> \$params{'%s'},%s# %s" %
+        return ("    '%s%s'%s=> \$tool_params{'%s'},%s# %s" %
                 (name, "", ((16 - len(name)) * " "), name,
                  ((15 - len(name)) * " "), escape(parameter[1]).strip()))
     else:
-        return ("    '%s%s'%s=> \$params{'%s'},%s# %s" %
+        return ("    '%s%s'%s=> \$tool_params{'%s'},%s# %s" %
                 (name, ("=" + "%s" % parameter[2][0].lower().replace("c", "s").replace("d", "f")),
                  ((14 - len(name)) * " "), name,
                  ((15 - len(name)) * " "), escape(parameter[1]).strip()))
