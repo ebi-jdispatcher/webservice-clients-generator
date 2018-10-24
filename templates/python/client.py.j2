@@ -163,7 +163,7 @@ def restRequest(url):
         reqH.close()
     # Errors are indicated by HTTP status codes.
     except HTTPError as ex:
-        print(xmltramp.parse(ex.read())[0][0])
+        print(xmltramp.parse(unicode(ex.read(), u'utf-8'))[0][0])
         quit()
     printDebugMessage(u'restRequest', u'End', 11)
     return result
