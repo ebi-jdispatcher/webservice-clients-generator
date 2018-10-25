@@ -77,17 +77,15 @@ def fetch_perl_options(name, parameter):
 
 def fetch_perl_usage(name, parameter):
     if parameter[2] == u'BOOLEAN':
-        return ("  --%s : %s : %s" %
-                (name + (19 - len(name)) * " ", "bool" + (4 - len("bool")) * " ",
-                 "\n                                 ". \
-                 join(textwrap.wrap(escape(parameter[1]).strip(), width=70))))
+        return ("  --%s %s" %
+                (name + (19 - len(name)) * " ",
+                 "\n                        ". \
+                 join(textwrap.wrap(escape(parameter[1]).strip(), width=60))))
     else:
-        return ("  --%s : %s : %s" %
-                (name + (19 - len(name)) * " ", "%s " %
-                 (parameter[2][0:3].lower().
-                  replace("seq", "str").replace("dou", "flo").replace("com", "str")),
-                 "\n                                 ". \
-                 join(textwrap.wrap(escape(parameter[1]).strip(), width=70))))
+        return ("  --%s %s" %
+                (name + (19 - len(name)) * " ",
+                 "\n                        ". \
+                 join(textwrap.wrap(escape(parameter[1]).strip(), width=60))))
 
 
 def fetch_perl_types(name):
@@ -116,7 +114,7 @@ def fetch_java_message(name, parameter):
 
 
 def generate_client(tool, template):
-    return template.render(tool=tool)
+    return template.render(tool=tool) + "\n"
 
 
 def write_client(filename, contents, dir="dist"):
@@ -172,6 +170,7 @@ def main(lang, client="all"):
                             [u'git', u'describe', u'--always']).strip()
                             .decode('UTF-8'),
                         u'options': [],
+                        u'usage': [],
                         u'types': []}
 
                 tool[u'description'], parameters = tool_from(tool[u'url'])
@@ -179,12 +178,14 @@ def main(lang, client="all"):
                 for option in parser[idtool]:
                     tool[option] = parser.get(idtool, option)
 
-                options = []
+                options, usage = [], []
                 for (name, parameter) in parameters.items():
                     options.append(fetch_python_options(name, parameter))
                     tool[u'types'].append(fetch_python_types(name, parameter))
+                    usage.append(fetch_perl_usage(name, parameter))
 
                 tool[u'options'] = "\n".join(options)
+                tool[u'usage'] = "\n".join(usage)
                 contents = generate_client(tool, template)
                 write_client(tool[u'filename'], contents)
                 print("Generated Python client for %s" % tool['url'], flush=True)
