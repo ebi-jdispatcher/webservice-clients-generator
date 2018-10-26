@@ -80,12 +80,12 @@ def fetch_perl_usage(name, parameter):
         return ("  --%s %s" %
                 (name + (19 - len(name)) * " ",
                  "\n                        ". \
-                 join(textwrap.wrap(escape(parameter[1]).strip(), width=60))))
+                 join(textwrap.wrap(escape(parameter[1]).strip(), width=60)))).rstrip(".") + "."
     else:
         return ("  --%s %s" %
                 (name + (19 - len(name)) * " ",
                  "\n                        ". \
-                 join(textwrap.wrap(escape(parameter[1]).strip(), width=60))))
+                 join(textwrap.wrap(escape(parameter[1]).strip(), width=60)))).rstrip(".") + "."
 
 
 def fetch_java_usage(name, parameter):
