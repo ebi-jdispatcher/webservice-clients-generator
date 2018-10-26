@@ -88,6 +88,13 @@ def fetch_perl_usage(name, parameter):
                  join(textwrap.wrap(escape(parameter[1]).strip(), width=60))))
 
 
+def fetch_java_usage(name, parameter):
+    return ('  --%s %s'
+            '' % (name + (19 - len(name)) * " ",
+            '\n                        '. \
+            join(textwrap.wrap(escape(parameter[1]).strip(), width=60)))).rstrip(".") + "."
+
+
 def fetch_perl_types(name):
     return u'''\
     if ($params{'%s'}) {
@@ -256,6 +263,7 @@ def main(lang, client="all"):
                         u'url': u'{}{}'.format(baseurl, idtool),
                         u'filename': os.path.join('src', 'restclient',
                                                   u'RestClient.java'),
+                        u'usage': [],
                         }
 
                 tool[u'description'], parameters = tool_from(tool[u'url'])
@@ -263,12 +271,18 @@ def main(lang, client="all"):
                 for option in parser[idtool]:
                     tool[option] = parser.get(idtool, option)
 
-                messages = []
+                messages, messages2 = [], []
                 for (name, parameter) in parameters.items():
                     messages.append(fetch_java_message(name, parameter))
+                    messages2.append(fetch_java_usage(name, parameter))
+
+                usage = []
+                for (name, parameter) in parameters.items():
+                    usage.append(fetch_java_usage(name, parameter))
+                tool[u'usage'] = "\n".join(usage)
 
                 write_java_tool_files(os.path.join("dist", "bin", "tools", "%s_req.txt" % idtool),
-                                      " --email             \tstring\tUser email address")
+                                      "\n".join(messages2))
                 write_java_tool_files(os.path.join("dist", "bin", "tools", "%s_opt.txt" % idtool),
                                       "\n".join(messages))
                 write_java_tool_files(os.path.join("dist", "bin", "tools", "%s.txt" % idtool),
