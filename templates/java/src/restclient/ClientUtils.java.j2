@@ -38,10 +38,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class ClientUtils {
+public class ClientUtils{{ tool.id }} {
 
 
-//    private static final Logger log = LoggerFactory.getLogger(ClientUtils.class);
+//    private static final Logger log = LoggerFactory.getLogger(ClientUtils{{ tool.id }}.class);
 
     /**
      * Check if Http response code is as expected
@@ -58,7 +58,7 @@ public class ClientUtils {
             WsError wsError = response.getEntity(WsError.class);
             printDebugMessage("isResponseCorrect", wsError.getError() + "\n",
                     41, debugLevel);
-
+            System.out.println(wsError.getError());
             return false;
         }
         return true;
@@ -87,10 +87,10 @@ public class ClientUtils {
             WsResultType resultType = new WsResultType();
             resultType.setIdentifier(identifier);
 
-            String suffix = ClientUtils.getSuffixFor(identifier, allResultTypes);
+            String suffix = ClientUtils{{ tool.id }}.getSuffixFor(identifier, allResultTypes);
 
             if (suffix != null) {
-                resultType.setFileSuffix(ClientUtils.getSuffixFor(identifier, allResultTypes));
+                resultType.setFileSuffix(ClientUtils{{ tool.id }}.getSuffixFor(identifier, allResultTypes));
             } else {
                 printDebugMessage("processUserOutputFormats",
                         "Incorrect output format identifier: " + identifier,
@@ -120,21 +120,17 @@ public class ClientUtils {
      * @throws IOException
      * @throws ServiceException
      */
-    public static boolean getStatusInIntervals(RestClient client, String jobid, int interval,
+    public static boolean getStatusInIntervals(RestClient{{ tool.id }} client, String jobid, int interval,
                                                int outputLevel, int debugLevel)
             throws InterruptedException, IOException, ServiceException {
 
         String status = null;
         printDebugMessage("getStatusInIntervals",
                 String.format("Update status: every %s seconds.", interval), 11, debugLevel);
-        if (outputLevel > 0)
-            System.out.println("Getting status for job " + jobid);
 
         while (status == null || !status.equals("FINISHED")) {
             Thread.sleep(interval);
             status = client.checkStatus(jobid);
-            if (outputLevel > 0)
-                System.out.println(status);
             printDebugMessage("getStatusInIntervals", "Status: " + status,
                     11, debugLevel);
             if (status.equals("FAILURE")) {
