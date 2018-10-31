@@ -85,26 +85,36 @@ def fetch_python_usage(name, parameter):
 
 def fetch_perl_options(name, parameter):
     if parameter[2] == u'BOOLEAN':
-        return ("    '%s%s'%s=> \$tool_params{'%s'},%s# %s" %
+        return ("    '%s%s'%s=> \$params{'%s'},%s# %s" %
                 (name, "", ((16 - len(name)) * " "), name,
                  ((15 - len(name)) * " "), escape(parameter[1]).strip()))
     else:
-        return ("    '%s%s'%s=> \$tool_params{'%s'},%s# %s" %
+        return ("    '%s%s'%s=> \$params{'%s'},%s# %s" %
                 (name, ("=" + "%s" % parameter[2][0].lower().replace("c", "s").replace("d", "f")),
                  ((14 - len(name)) * " "), name,
                  ((15 - len(name)) * " "), escape(parameter[1]).strip()))
+
+
+def fetch_perl_types(name):
+    return u'''\
+    if ($params{'%s'}) {
+        $params{'%s'} = 1;
+    }
+    else {
+        $params{'%s'} = 0;
+    }''' % (name, name, name)
 
 
 def fetch_perl_usage(name, parameter):
     if parameter[2] == u'BOOLEAN':
         return ("  --%s %s" %
                 (name + (19 - len(name)) * " ",
-                 "\n                        ". \
+                 "\n                        ".
                  join(textwrap.wrap(escape(parameter[1]).strip(), width=60)))).rstrip(".") + "."
     else:
         return ("  --%s %s" %
                 (name + (19 - len(name)) * " ",
-                 "\n                        ". \
+                 "\n                        ".
                  join(textwrap.wrap(escape(parameter[1]).strip(), width=60)))).rstrip(".") + "."
 
 
@@ -121,14 +131,6 @@ def fetch_java_options(name, parameter):
                       join(textwrap.wrap(escape(parameter[1]).strip().replace("'", ""), width=70))))
 
 
-def fetch_perl_types(name):
-    return u'''\
-    if ($params{'%s'}) {
-        $tool_params{'%s'} = 1;
-    }
-    else {
-        $tool_params{'%s'} = 0;
-    }''' % (name, name, name)
 def fetch_java_usage(name, parameter):
     return ('                                   + "  --%s %s\n'
             '' % (name + (19 - len(name)) * " ",
@@ -240,7 +242,8 @@ def main(lang, client="all"):
                             [u'git', u'describe', u'--always']).strip()
                             .decode('UTF-8'),
                         u'options': [],
-                        u'usage': [],
+                        u'usage_req': [],
+                        u'usage_opt': [],
                         u'checks': [],
                         }
 
@@ -249,15 +252,19 @@ def main(lang, client="all"):
                 for option in parser[idtool]:
                     tool[option] = parser.get(idtool, option)
 
-                options, usage, checks = [], [], []
+                options, usage_opt, usage_req, checks = [], [], [], []
                 for (name, parameter) in parameters.items():
                     options.append(fetch_perl_options(name, parameter))
-                    usage.append(fetch_perl_usage(name, parameter))
+                    if name in required_params:
+                        usage_req.append(fetch_perl_usage(name, parameter))
+                    else:
+                        usage_opt.append(fetch_perl_usage(name, parameter))
                     if parameter[2] == u'BOOLEAN':
                         checks.append(fetch_perl_types(name))
 
                 tool[u'options'] = "\n".join(options)
-                tool[u'usage'] = "\n".join(usage)
+                tool[u'usage_req'] = "\n".join(usage_req)
+                tool[u'usage_opt'] = "\n".join(usage_opt)
                 tool[u'checks'] = "\n".join(checks)
 
                 contents = generate_client(tool, template)
