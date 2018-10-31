@@ -44,9 +44,16 @@ def details_of(url, param_name):
 
 
 def fetch_python_options(name, parameter):
-    return ("parser.add_option('--%s', help=('%s'))"
-            "" % (name, "'\n                  '". \
-                  join(textwrap.wrap(escape(parameter[1]).strip().replace("'", ""), width=70))))
+    type = parameter[2]
+    # for val in parameter
+    if type == u'BOOLEAN':
+        return ("parser.add_option('--%s', action='store_true', help=('%s'))"
+                "" % (name, "'\n                  '".
+                      join(textwrap.wrap(escape(parameter[1]).strip().replace("'", ""), width=70))))
+    else:
+        return ("parser.add_option('--%s', help=('%s'))"
+                "" % (name, "'\n                  '".
+                      join(textwrap.wrap(escape(parameter[1]).strip().replace("'", ""), width=70))))
 
 
 def fetch_python_types(name, parameter):
@@ -61,6 +68,19 @@ def fetch_python_types(name, parameter):
         return u'''\
     if options.{0}:
         params['{0}'] = options.{0}'''.format(name)
+
+
+def fetch_python_usage(name, parameter):
+    if parameter[2] == u'BOOLEAN':
+        return ("  --%s %s" %
+                (name + (19 - len(name)) * " ",
+                 "\n                        ".
+                 join(textwrap.wrap(escape(parameter[1]).strip(), width=60)))).rstrip(".") + "."
+    else:
+        return ("  --%s %s" %
+                (name + (19 - len(name)) * " ",
+                 "\n                        ".
+                 join(textwrap.wrap(escape(parameter[1]).strip(), width=60)))).rstrip(".") + "."
 
 
 def fetch_perl_options(name, parameter):
@@ -176,7 +196,8 @@ def main(lang, client="all"):
                             [u'git', u'describe', u'--always']).strip()
                             .decode('UTF-8'),
                         u'options': [],
-                        u'usage': [],
+                        u'usage_req': [],
+                        u'usage_opt': [],
                         u'types': []}
 
                 tool[u'description'], parameters = tool_from(tool[u'url'])
@@ -184,14 +205,19 @@ def main(lang, client="all"):
                 for option in parser[idtool]:
                     tool[option] = parser.get(idtool, option)
 
-                options, usage = [], []
+                options, usage_opt, usage_req = [], [], []
+
                 for (name, parameter) in parameters.items():
                     options.append(fetch_python_options(name, parameter))
                     tool[u'types'].append(fetch_python_types(name, parameter))
-                    usage.append(fetch_perl_usage(name, parameter))
+                    if name in required_params:
+                        usage_req.append(fetch_python_usage(name, parameter))
+                    else:
+                        usage_opt.append(fetch_python_usage(name, parameter))
 
                 tool[u'options'] = "\n".join(options)
-                tool[u'usage'] = "\n".join(usage)
+                tool[u'usage_req'] = "\n".join(usage_req)
+                tool[u'usage_opt'] = "\n".join(usage_opt)
                 contents = generate_client(tool, template)
                 write_client(tool[u'filename'], contents)
                 print("Generated Python client for %s" % tool['url'], flush=True)
