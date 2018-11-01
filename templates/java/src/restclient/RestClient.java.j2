@@ -442,7 +442,7 @@ public class RestClient{{ tool.id }} {
                 if (parameter != null) {
 
                     printDebugMessage("run", "Simplified view", 11);
-                    ClientUtils{{ tool.id }}.marshallToXML(parameter);
+                    ClientUtils{{ tool.id }}.marshallToXML(parameter, debugLevel, "parameters");
                 } else {
                     printDebugMessage("run", "Returned WsParameter object is null", 41);
                 }
@@ -510,7 +510,7 @@ public class RestClient{{ tool.id }} {
                         System.out.println("Getting result types for job " + jobid);
                     if (outputLevel > 0)
                         System.out.println("Available result types:");
-                    ClientUtils{{ tool.id }}.marshallToXML(getResultTypesForJobId(jobid));
+                    ClientUtils{{ tool.id }}.marshallToXML(getResultTypesForJobId(jobid), debugLevel, "types");
                     if (outputLevel > 0)
                         System.out.println("To get results:\n  java -jar {{ tool.id }}.jar --polljob --jobid " + jobid
                                            + "\n  java -jar {{ tool.id }}.jar --polljob --outformat <type> --jobid " + jobid);
