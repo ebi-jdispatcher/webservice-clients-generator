@@ -641,6 +641,11 @@ public class RestClient{{ tool.id }} {
             }
         }
 
+        // Pass default values and fix bools (without default value)
+{%- if tool.default_values is defined %}
+{{ tool.default_values }}
+{% endif %}
+
         ClientResponse response = getResponse(baseUrl, "/run", RequestType.POST, form);
 
         if (ClientUtils{{ tool.id }}.isResponseCorrect(response, debugLevel)) {

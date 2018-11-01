@@ -13,6 +13,7 @@ from functools import reduce
 import xml.etree.ElementTree as ET
 from jinja2 import Environment, FileSystemLoader
 import easyargs
+import xmltodict
 
 
 # Wrapper for a REST (HTTP GET) request
@@ -40,24 +41,54 @@ def parameters_of(url):
 def details_of(url, param_name):
     response = restRequest(url + u'/parameterdetails/' + param_name)
     details = ET.fromstring(response)
-    return [detail.text for detail in details]
+    values = {detail.tag: detail.text for detail in details}
+
+    default_values = {'protein':  None, 'nucleotide': None, 'vector': None, 'generic': None}
+    if param_name != "stype":
+        param = xmltodict.parse(response)
+        for key, val in param['parameter'].items():
+            if key == "values":
+                if 'value' in param['parameter']['values']:
+                    # loop over list of values
+                    for value in param['parameter']['values']['value']:
+
+                        # checks if key=context and key=defaultValueContexts exists
+                        if 'properties' in value:
+                            if 'property' in value['properties']:
+                                # loop over list of properties
+                                prop = value['properties']['property']
+                                if type(prop) is list:
+                                    for pro in prop:
+                                        if 'key' in pro and 'value' in pro:
+                                            if pro['key'] == 'defaultValueContexts' and 'value' in value:
+                                                # all contexts == same as defaultValue
+                                                for key in ["protein", "nucleotide", "vector"]:
+                                                    if key in pro['value']:
+                                                        default_values[key] = value['value']
+
+                        # else try find generic 'defaultValue'
+                        elif 'defaultValue' in value and 'value' in value:
+                            if value['defaultValue'] == 'true':
+                                default_values['generic'] = value['value']
+    values["default_values"] = default_values
+    return values
 
 
 def fetch_python_options(name, parameter):
-    type = parameter[2]
+    type = parameter["type"]
     # for val in parameter
     if type == u'BOOLEAN':
         return ("parser.add_option('--%s', action='store_true', help=('%s'))"
                 "" % (name, "'\n                  '".
-                      join(textwrap.wrap(escape(parameter[1]).strip().replace("'", ""), width=70))))
+                      join(textwrap.wrap(escape(parameter["description"]).strip().replace("'", ""), width=70))))
     else:
         return ("parser.add_option('--%s', help=('%s'))"
                 "" % (name, "'\n                  '".
-                      join(textwrap.wrap(escape(parameter[1]).strip().replace("'", ""), width=70))))
+                      join(textwrap.wrap(escape(parameter["description"]).strip().replace("'", ""), width=70))))
 
 
 def fetch_python_types(name, parameter):
-    type = parameter[2]
+    type = parameter["type"]
     if type == u'BOOLEAN':
         return u'''\
     if options.{0}:
@@ -71,71 +102,118 @@ def fetch_python_types(name, parameter):
 
 
 def fetch_python_usage(name, parameter):
-    if parameter[2] == u'BOOLEAN':
+    if parameter["type"] == u'BOOLEAN':
         return ("  --%s %s" %
                 (name + (19 - len(name)) * " ",
                  "\n                        ".
-                 join(textwrap.wrap(escape(parameter[1]).strip(), width=60)))).rstrip(".") + "."
+                 join(textwrap.wrap(escape(parameter["description"]).strip(), width=60)))).rstrip(".") + "."
     else:
         return ("  --%s %s" %
                 (name + (19 - len(name)) * " ",
                  "\n                        ".
-                 join(textwrap.wrap(escape(parameter[1]).strip(), width=60)))).rstrip(".") + "."
+                 join(textwrap.wrap(escape(parameter["description"]).strip(), width=60)))).rstrip(".") + "."
+
+
+def get_python_default_values(name, parameter):
+    string = ""
+    if (parameter['default_values']['protein'] is not None and
+            parameter['default_values']['nucleotide'] is not None and
+            parameter['default_values']['vector'] is not None):
+        for key in ["protein", "nucleotide", "vector"]:
+            string += ("    if options.stype == '%s':\n"
+                       "        if not options.%s:\n"
+                       "            params['%s'] = '%s'\n" % (key, name, name,
+                                                              parameter['default_values'][key]))
+    elif parameter['default_values']['generic'] is not None:
+        string += ("    if not options.%s:\n"
+                   "        params['%s'] = '%s'\n"
+                   "" % (name, name, parameter['default_values']['generic']))
+
+    if string == "" and parameter["type"] == u'BOOLEAN':
+        string += """\
+    if options.%s:
+        params['%s'] = 'true'
+    else:
+        params['%s'] = 'false'
+    \n""" % (name, name, name)
+
+    string += """\
+    if options.%s:
+        params['%s'] = options.%s
+    \n""" % (name, name, name)
+
+    return string
 
 
 def fetch_perl_options(name, parameter):
-    if parameter[2] == u'BOOLEAN':
+    if parameter["type"] == u'BOOLEAN':
         return ("    '%s%s'%s=> \$params{'%s'},%s# %s" %
                 (name, "", ((16 - len(name)) * " "), name,
-                 ((15 - len(name)) * " "), escape(parameter[1]).strip()))
+                 ((15 - len(name)) * " "), escape(parameter["description"]).strip()))
     else:
         return ("    '%s%s'%s=> \$params{'%s'},%s# %s" %
-                (name, ("=" + "%s" % parameter[2][0].lower().replace("c", "s").replace("d", "f")),
+                (name, ("=" + "%s" % parameter["type"][0].lower().replace("c", "s").replace("d", "f")),
                  ((14 - len(name)) * " "), name,
-                 ((15 - len(name)) * " "), escape(parameter[1]).strip()))
-
-
-def fetch_perl_types(name):
-    return u'''\
-    if ($params{'%s'}) {
-        $params{'%s'} = 1;
-    }
-    else {
-        $params{'%s'} = 0;
-    }''' % (name, name, name)
+                 ((15 - len(name)) * " "), escape(parameter["description"]).strip()))
 
 
 def fetch_perl_usage(name, parameter):
-    if parameter[2] == u'BOOLEAN':
+    if parameter["type"] == u'BOOLEAN':
         return ("  --%s %s" %
                 (name + (19 - len(name)) * " ",
                  "\n                        ".
-                 join(textwrap.wrap(escape(parameter[1]).strip(), width=60)))).rstrip(".") + "."
+                 join(textwrap.wrap(escape(parameter["description"]).strip(), width=60)))).rstrip(".") + "."
     else:
         return ("  --%s %s" %
                 (name + (19 - len(name)) * " ",
                  "\n                        ".
-                 join(textwrap.wrap(escape(parameter[1]).strip(), width=60)))).rstrip(".") + "."
+                 join(textwrap.wrap(escape(parameter["description"]).strip(), width=60)))).rstrip(".") + "."
+
+
+def get_perl_default_values(name, parameter):
+    string = ""
+    if (parameter['default_values']['protein'] is not None and
+            parameter['default_values']['nucleotide'] is not None and
+            parameter['default_values']['vector'] is not None):
+        for key in ["protein", "nucleotide", "vector"]:
+            string += ("    if ($params{'stype'} eq '%s') {\n"
+                       "        if (!$params{'%s'}) {\n"
+                       "            $params{'%s'} = '%s'\n        }\n    }\n"
+                       % (key, name, name, parameter['default_values'][key]))
+    elif parameter['default_values']['generic'] is not None:
+        string += ("    if (!$params{'%s'}) {\n"
+                   "        $params{'%s'} = '%s'\n    }\n"
+                   "" % (name, name, parameter['default_values']['generic']))
+
+    if string == "" and parameter["type"] == u'BOOLEAN':
+        string += """\
+    if ($params{'%s'}) {
+        $params{'%s'} = 'true';
+    }
+    else {
+        $params{'%s'} = 'false';
+    }\n""" % (name, name, name)
+    return string
 
 
 def fetch_java_options(name, parameter):
-    type = parameter[2]
+    type = parameter["type"]
     # for val in parameter
     if type == u'BOOLEAN':
         return ('        allOptions.addOption("%s", "", false, "%s");'
                 '' % (name, '"\n                   + "'.
-                      join(textwrap.wrap(escape(parameter[1]).strip().replace("'", ""), width=70))))
+                      join(textwrap.wrap(escape(parameter["description"]).strip().replace("'", ""), width=70))))
     else:
         return ('        allOptions.addOption("%s", "", true, "%s");'
                 '' % (name, '"\n                   + "'.
-                      join(textwrap.wrap(escape(parameter[1]).strip().replace("'", ""), width=70))))
+                      join(textwrap.wrap(escape(parameter["description"]).strip().replace("'", ""), width=70))))
 
 
 def fetch_java_usage(name, parameter):
     return ('                                   + "  --%s %s\n'
             '' % (name + (19 - len(name)) * " ",
                   '\\n"\n                                   + "                        '.
-                  join(textwrap.wrap(escape(parameter[1]).strip(), width=60)).rstrip('.\\n"') + '.\\n"'))
+                  join(textwrap.wrap(escape(parameter["description"]).strip(), width=60)).rstrip('.\\n"') + '.\\n"'))
 
 
 def fetch_java_clients(name):
@@ -143,6 +221,32 @@ def fetch_java_clients(name):
         <antcall target="jar-client">
             <param name="client" value="%s"/>
         </antcall>''' % name
+
+
+def get_java_default_values(name, parameter):
+    string = ""
+    if (parameter['default_values']['protein'] is not None and
+            parameter['default_values']['nucleotide'] is not None and
+            parameter['default_values']['vector'] is not None):
+        for key in ["protein", "nucleotide", "vector"]:
+            string += ('        if (cli.hasOption("stype") && cli.getOptionValue("stype") == "%s") {\n'
+                       '            if (cli.hasOption("%s") == false) {\n'
+                       '                form.putSingle("%s", "%s");\n'
+                       '            }\n        }\n' % (key, name, name, parameter['default_values'][key]))
+
+    elif parameter['default_values']['generic'] is not None:
+        string += ('        if (cli.hasOption("%s") == false)\n'
+                   '           form.putSingle("%s", "%s");\n'
+                   '' % (name, name, parameter['default_values']['generic']))
+
+    if string == "" and parameter["type"] == u'BOOLEAN':
+        string += """\
+        if (cli.hasOption("%s") == true) {
+            form.putSingle("%s", "true");
+        } else {
+            form.putSingle("%s", "false");
+        }\n""" % (name, name, name)
+    return string
 
 
 def generate_client(tool, template):
@@ -200,26 +304,32 @@ def main(lang, client="all"):
                         u'options': [],
                         u'usage_req': [],
                         u'usage_opt': [],
-                        u'types': []}
+                        u'types': [],
+                        u'default_values': [],
+                        }
 
                 tool[u'description'], parameters = tool_from(tool[u'url'])
 
                 for option in parser[idtool]:
                     tool[option] = parser.get(idtool, option)
 
-                options, usage_opt, usage_req = [], [], []
+                options, usage_opt, usage_req, def_values = [], [], [], []
 
                 for (name, parameter) in parameters.items():
                     options.append(fetch_python_options(name, parameter))
-                    tool[u'types'].append(fetch_python_types(name, parameter))
                     if name in required_params:
                         usage_req.append(fetch_python_usage(name, parameter))
+                        tool[u'types'].append(fetch_python_types(name, parameter))
                     else:
                         usage_opt.append(fetch_python_usage(name, parameter))
+                        values = get_python_default_values(name, parameter)
+                        if values != "":
+                            def_values.append(values)
 
                 tool[u'options'] = "\n".join(options)
                 tool[u'usage_req'] = "\n".join(usage_req)
                 tool[u'usage_opt'] = "\n".join(usage_opt)
+                tool[u'default_values'] = "\n".join(def_values)
                 contents = generate_client(tool, template)
                 write_client(tool[u'filename'], contents)
                 print("Generated Python client for %s" % tool['url'], flush=True)
@@ -244,7 +354,7 @@ def main(lang, client="all"):
                         u'options': [],
                         u'usage_req': [],
                         u'usage_opt': [],
-                        u'checks': [],
+                        u'default_values': [],
                         }
 
                 tool[u'description'], parameters = tool_from(tool[u'url'])
@@ -252,21 +362,21 @@ def main(lang, client="all"):
                 for option in parser[idtool]:
                     tool[option] = parser.get(idtool, option)
 
-                options, usage_opt, usage_req, checks = [], [], [], []
+                options, usage_opt, usage_req, types, def_values = [], [], [], [], []
                 for (name, parameter) in parameters.items():
                     options.append(fetch_perl_options(name, parameter))
                     if name in required_params:
                         usage_req.append(fetch_perl_usage(name, parameter))
                     else:
                         usage_opt.append(fetch_perl_usage(name, parameter))
-                    if parameter[2] == u'BOOLEAN':
-                        checks.append(fetch_perl_types(name))
+                        values = get_perl_default_values(name, parameter)
+                        if values != "":
+                            def_values.append(values)
 
                 tool[u'options'] = "\n".join(options)
                 tool[u'usage_req'] = "\n".join(usage_req)
                 tool[u'usage_opt'] = "\n".join(usage_opt)
-                tool[u'checks'] = "\n".join(checks)
-
+                tool[u'default_values'] = "\n".join(def_values)
                 contents = generate_client(tool, template)
                 write_client(tool[u'filename'], contents)
                 print("Generated Perl client for %s" % tool['url'], flush=True)
@@ -305,6 +415,7 @@ def main(lang, client="all"):
                         u'usage_req': [],
                         u'usage_opt': [],
                         u'usage': [],
+                        u'default_values': [],
                         }
 
                 tool[u'description'], parameters = tool_from(tool[u'url'])
@@ -312,18 +423,21 @@ def main(lang, client="all"):
                 for option in parser[idtool]:
                     tool[option] = parser.get(idtool, option)
 
-                options, usage_opt, usage_req = [], [], []
+                options, usage_opt, usage_req, def_values = [], [], [], []
                 for (name, parameter) in parameters.items():
                     options.append(fetch_java_options(name, parameter))
                     if name in required_params:
                         usage_req.append(fetch_java_usage(name, parameter))
                     else:
                         usage_opt.append(fetch_java_usage(name, parameter))
+                        values = get_java_default_values(name, parameter)
+                        if values != "":
+                            def_values.append(values)
 
                 tool[u'options'] = "\n".join(options)
                 tool[u'usage_req'] = "\n".join(usage_req)
                 tool[u'usage_opt'] = "\n".join(usage_opt)
-
+                tool[u'default_values'] = "\n".join(def_values)
                 contents_client = generate_client(tool, template_client)
                 contents_utils = generate_client(tool, template_utils)
                 write_client(tool[u'filename_client'], contents_client)

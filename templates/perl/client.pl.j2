@@ -766,12 +766,10 @@ Load job parameters from command-line options.
 sub load_params {
     print_debug_message('load_params', 'Begin', 1);
 
-{% if tool.checks is defined %}
-{% for check in tool.checks %}
-{{- check -}}
-{% endfor %}
+    # Pass default values and fix bools (without default value)
+{%- if tool.default_values is defined %}
+{{ tool.default_values }}
 {% endif %}
-
     print_debug_message('load_params', 'End', 1);
 }
 

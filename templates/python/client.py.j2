@@ -494,10 +494,14 @@ elif options.email and not options.jobid:
         elif hasattr(options, "asequence") and hasattr(options, "bsequence"):
             params[u'asequence'] = options.asequence
             params[u'bsequence'] = options.bsequence
+
+    # Pass default values and fix bools (without default value)
 {% for type in tool.types -%}
 {{ type }}
 {% endfor %}
-
+{%- if tool.default_values is defined %}
+{{ tool.default_values }}
+{% endif %}
     # Submit the job
     jobId = serviceRun(options.email, options.title, params)
     if options.async: # Async mode
