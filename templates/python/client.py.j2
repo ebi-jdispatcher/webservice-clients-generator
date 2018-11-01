@@ -522,7 +522,7 @@ elif options.jobid and options.status:
     printGetStatus(options.jobid)
 
 elif options.jobid and (options.resultTypes or options.polljob):
-    status = serviceGetStatus(jobId)
+    status = serviceGetStatus(options.jobid)
     if status == 'PENDING' or status == 'RUNNING':
         print("Error: Job status is %s. "
               "To get result types the job must be finished." % status)
