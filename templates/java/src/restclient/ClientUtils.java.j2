@@ -136,6 +136,8 @@ public class ClientUtils{{ tool.id }} {
             if (status.equals("FAILURE")) {
                 return false;
             }
+            if (outputLevel > 0)
+                System.out.println(status);
         }
         printDebugMessage("getStatusInIntervals", "Synchronous job execution has finished.",
                 11, debugLevel);

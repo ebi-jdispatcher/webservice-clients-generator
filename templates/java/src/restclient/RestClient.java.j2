@@ -246,8 +246,7 @@ public class RestClient{{ tool.id }} {
         if (outputLevel > 0)
             System.out.println("Getting status for job " + jobid);
         String status = checkStatus(jobid);
-        if (outputLevel > 0)
-            System.out.println(status);
+        System.out.println(status);
         if (outputLevel > 0 && status.equals("FINISHED")) {
              System.out.println("To get results: java -jar {{ tool.id }}.jar --polljob --jobid " + jobid);
         }

@@ -272,8 +272,7 @@ def printGetStatus(jobId):
     status = serviceGetStatus(jobId)
     if outputLevel > 0:
         print("Getting status for job %s" % jobId)
-    if outputLevel > 0:
-        print(status)
+    print(status)
     if outputLevel > 0 and status == "FINISHED":
         print("To get results: python %s --polljob --jobid %s"
               "" % (os.path.basename(__file__), jobId))
