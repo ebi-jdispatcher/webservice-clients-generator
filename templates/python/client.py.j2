@@ -485,13 +485,15 @@ elif options.email and not options.jobid:
             params[u'sequence'] = readFile(args[0])
         else:  # Argument is a sequence id
             params[u'sequence'] = args[0]
-    elif options.sequence:  # Specified via option
-        if os.path.exists(options.sequence):  # Read file into content
-            params[u'sequence'] = readFile(options.sequence)
-        else:  # Argument is a sequence id
-            params[u'sequence'] = options.sequence
-    # Booleans need to be represented as 1/0 rather than True/False
-
+    elif hasattr(options, "sequence") or (hasattr(options, "asequence") and hasattr(options, "bsequence")):  # Specified via option
+        if hasattr(options, "sequence"):
+            if os.path.exists(options.sequence):  # Read file into content
+                params[u'sequence'] = readFile(options.sequence)
+            else:  # Argument is a sequence id
+                params[u'sequence'] = options.sequence
+        elif hasattr(options, "asequence") and hasattr(options, "bsequence"):
+            params[u'asequence'] = options.asequence
+            params[u'bsequence'] = options.bsequence
 {% for type in tool.types -%}
 {{ type }}
 {% endfor %}
