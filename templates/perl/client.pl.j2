@@ -71,12 +71,18 @@ my $baseUrl = '{{ tool.url }}';
 # Set interval for checking status
 my $checkInterval = 3;
 
+# Set maximum number of 'ERROR' status calls to call job failed.
+my $maxErrorStatusCount = 3;
+
 # Output level
 my $outputLevel = 1;
 
 # Process command-line options
 my $numOpts = scalar(@ARGV);
-my %params = ('debugLevel' => 0);
+my %params = (
+    'debugLevel' => 0,
+    'maxJobs'    => 1
+);
 
 # Default parameter values (should get these from the service)
 GetOptions(
@@ -101,6 +107,11 @@ GetOptions(
 {%- if tool.id in ("hmmer3_phmmer", "hmmer3_hmmscan") %}
     'acc=i'           => \$params{'acc'},             # Get accession ID, how many from top
 {%- endif %}
+{%- if tool.id in ("ncbiblast", "fasta", "fastm", "psiblast", "psisearch", "hmmer3_phmmer", "hmmer3_hmmscan", "iprscan5", "pfamscan", "phobius", "pratt", "radar") %}
+    'multifasta'      => \$params{'multifasta'},     # Multiple fasta input
+    'useSeqId'        => \$params{'useSeqId'},       # Seq Id file name
+    'maxJobs=i'       => \$params{'maxJobs'},        # Max. parallel jobs
+{% endif %}
     'verbose'         => \$params{'verbose'},        # Increase output level
     'quiet'           => \$params{'quiet'},          # Decrease output level
     'debugLevel=i'    => \$params{'debugLevel'},     # Debugging level
@@ -196,9 +207,32 @@ elsif ($params{'polljob'} && defined($params{'jobid'})) {
 
 # Submit a job
 else {
+    # Multiple input sequence mode, assume fasta format.
+    if (defined($params{'multifasta'}) && $params{'multifasta'}) {
+        &multi_submit_job();
+    }
 
-    # Load the sequence data and submit.
-    &submit_job(&load_data());
+    # Entry identifier list file.
+    elsif ((defined($params{'sequence'}) && $params{'sequence'} =~ m/^\@/)
+        || (defined($ARGV[0]) && $ARGV[0] =~ m/^\@/)) {
+        my $list_filename = $params{'sequence'} || $ARGV[0];
+        $list_filename =~ s/^\@//;
+        &list_file_submit_job($list_filename);
+    }
+    # Default: single sequence/identifier.
+    else {
+        # Warn for invalid batch only option use.
+        if (defined($params{'useSeqId'}) && $params{'useSeqId'}) {
+            print STDERR "Warning: --useSeqId option ignored.\n";
+            delete $params{'useSeqId'};
+        }
+        if (defined($params{'maxJobs'}) && $params{'maxJobs'} > 1) {
+            print STDERR "Warning: --maxJobs option ignored.\n";
+            $params{'maxJobs'} = 1;
+        }
+        # Load the sequence data and submit.
+        &submit_job(&load_data());
+    }
 }
 
 {% if tool.id in ("hmmer3_phmmer", "hmmer3_hmmscan") %}
@@ -866,6 +900,9 @@ sub submit_job {
 {% else %}
     $params{'sequence'} = shift;
 {%-  endif %}
+{%- if tool.id in ("ncbiblast", "fasta", "fastm", "psiblast", "psisearch", "hmmer3_phmmer", "hmmer3_hmmscan", "iprscan5", "pfamscan", "phobius", "pratt", "radar") %}
+    my $seq_id = shift;
+{%-  endif %}
 {%- if tool.id in ("hmmer3_phmmer", "hmmer3_hmmscan") %}
 
     # Set input seqdb ; ensemblgenomes,uniprotkb,uniprotrefprot,rp15,rp35,rp55,rp75,ensembl,merops,qfo,swissprot,pdb,meropsscan
@@ -939,11 +976,240 @@ sub submit_job {
         }
         usleep($checkInterval);
         # Get results.
+{%- if tool.id in ("ncbiblast", "fasta", "fastm", "psiblast", "psisearch", "hmmer3_phmmer", "hmmer3_hmmscan", "iprscan5", "pfamscan", "phobius", "pratt", "radar") %}
+        &get_results($jobid, $seq_id);
+{% else %}
         &get_results($jobid);
+{%- endif %}
     }
     print_debug_message('submit_job', 'End', 1);
     return $jobid;
 }
+
+
+{%- if tool.id in ("ncbiblast", "fasta", "fastm", "psiblast", "psisearch", "hmmer3_phmmer", "hmmer3_hmmscan", "iprscan5", "pfamscan", "phobius", "pratt", "radar") %}
+=head2 multi_submit_job()
+
+Submit multiple jobs assuming input is a collection of fasta formatted sequences.
+
+  &multi_submit_job();
+
+=cut
+
+sub multi_submit_job {
+    print_debug_message('multi_submit_job', 'Begin', 1);
+    my (@filename_list) = ();
+
+    # Query sequence
+    if (defined($ARGV[0])) {                  # Bare option
+        if (-f $ARGV[0] || $ARGV[0] eq '-') { # File
+            push(@filename_list, $ARGV[0]);
+        }
+        else {
+            warn 'Warning: Input file "' . $ARGV[0] . '" does not exist';
+        }
+    }
+    if ($params{'sequence'}) {                                      # Via --sequence
+        if (-f $params{'sequence'} || $params{'sequence'} eq '-') { # File
+            push(@filename_list, $params{'sequence'});
+        }
+        else {
+            warn 'Warning: Input file "'
+                . $params{'sequence'}
+                . '" does not exist';
+        }
+    }
+
+    # Job identifier tracking for parallel execution.
+    my @jobid_list = ();
+    my $job_number = 0;
+    $/ = '>';
+    foreach my $filename (@filename_list) {
+        my $INFILE;
+        if ($filename eq '-') { # STDIN.
+            open($INFILE, '<-')
+                or die 'Error: unable to STDIN (' . $! . ')';
+        }
+        else { # File.
+            open($INFILE, '<', $filename)
+                or die 'Error: unable to open file '
+                . $filename . ' ('
+                . $! . ')';
+        }
+        while (<$INFILE>) {
+            my $seq = $_;
+            $seq =~ s/>$//;
+            if ($seq =~ m/(\S+)/) {
+                my $seq_id = $1;
+                print STDERR "Submitting job for: $seq_id\n"
+                    if ($outputLevel > 0);
+                $seq = '>' . $seq;
+                &print_debug_message('multi_submit_job', $seq, 11);
+                $job_number++;
+                my $job_id = &submit_job($seq, $seq_id);
+
+                my $job_info_str = sprintf('%s %d %d', $job_id, 0, $job_number);
+
+                push(@jobid_list, $job_info_str);
+            }
+
+            # Parallel mode, wait for job(s) to finish to free slots.
+            while ($params{'maxJobs'} > 1
+                && scalar(@jobid_list) >= $params{'maxJobs'}) {
+                &_job_list_poll(\@jobid_list);
+                print_debug_message('multi_submit_job',
+                    'Remaining jobs: ' . scalar(@jobid_list), 1);
+            }
+        }
+        close $INFILE;
+    }
+
+    # Parallel mode, wait for remaining jobs to finish.
+    while ($params{'maxJobs'} > 1 && scalar(@jobid_list) > 0) {
+        &_job_list_poll(\@jobid_list);
+        print_debug_message('multi_submit_job',
+            'Remaining jobs: ' . scalar(@jobid_list), 1);
+    }
+    print_debug_message('multi_submit_job', 'End', 1);
+}
+
+
+=head2 _job_list_poll()
+
+Poll the status of a list of jobs and fetch results for finished jobs.
+
+  while(scalar(@jobid_list) > 0) {
+    &_job_list_poll(\@jobid_list);
+  }
+
+=cut
+
+sub _job_list_poll {
+    print_debug_message('_job_list_poll', 'Begin', 1);
+    my $jobid_list = shift;
+    print_debug_message('_job_list_poll', 'Num jobs: ' . scalar(@$jobid_list),
+        11);
+
+    # Loop though job Id list polling job status.
+    for (my $jobNum = (scalar(@$jobid_list) - 1); $jobNum > -1; $jobNum--) {
+        my ($jobid, $seq_id, $error_count, $job_number) =
+            split(/\s+/, $jobid_list->[$jobNum]);
+        print_debug_message('_job_list_poll', 'jobNum: ' . $jobNum, 12);
+        print_debug_message('_job_list_poll',
+            'Job info: ' . $jobid_list->[$jobNum], 12);
+
+        # Get job status.
+        my $job_status = &rest_get_status($jobid);
+        print_debug_message('_job_list_poll', 'Status: ' . $job_status, 12);
+
+        # Fetch results and remove finished/failed jobs from list.
+        if (
+            !(
+                $job_status eq 'RUNNING'
+                    || $job_status eq 'PENDING'
+                    || ($job_status eq 'ERROR'
+                    && $error_count < $maxErrorStatusCount)
+            )
+        ) {
+            if ($job_status eq 'ERROR' || $job_status eq 'FAILED') {
+                print STDERR
+                    "Warning: job $jobid failed for sequence $job_number: $seq_id\n";
+            }
+            &get_results($jobid, $seq_id);
+            splice(@$jobid_list, $jobNum, 1);
+        }
+        else {
+
+            # Update error count, increment for new error or clear old errors.
+            if ($job_status eq 'ERROR') {
+                $error_count++;
+            }
+            elsif ($error_count > 0) {
+                $error_count--;
+            }
+
+            # Update job tracking info.
+            my $job_info_str = sprintf('%s %s %d %d',
+                $jobid, $seq_id, $error_count, $job_number);
+            $jobid_list->[$jobNum] = $job_info_str;
+        }
+    }
+    print_debug_message('_job_list_poll', 'Num jobs: ' . scalar(@$jobid_list),
+        11);
+    print_debug_message('_job_list_poll', 'End', 1);
+}
+
+=head2 list_file_submit_job()
+
+Submit multiple jobs using a file containing a list of entry identifiers as
+input.
+
+  &list_file_submit_job($list_filename)
+
+=cut
+
+sub list_file_submit_job {
+    print_debug_message('list_file_submit_job', 'Begin', 1);
+    my $filename = shift;
+
+    # Open the file of identifiers.
+    my $LISTFILE;
+    if ($filename eq '-') { # STDIN.
+        open($LISTFILE, '<-')
+            or die 'Error: unable to STDIN (' . $! . ')';
+    }
+    else { # File.
+        open($LISTFILE, '<', $filename)
+            or die 'Error: unable to open file ' . $filename . ' (' . $! . ')';
+    }
+
+    # Job identifier tracking for parallel execution.
+    my @jobid_list = ();
+    my $job_number = 0;
+
+    # Iterate over identifiers, submitting each job
+    while (<$LISTFILE>) {
+        my $line = $_;
+        chomp($line);
+        if ($line ne '') {
+            &print_debug_message('list_file_submit_job', 'line: ' . $line, 2);
+            if ($line =~ m/\w:\w/) {
+                # Check this is an identifier
+                my $seq_id = $line;
+                print STDERR "Submitting job for: $seq_id\n"
+                    if ($outputLevel > 0);
+                $job_number++;
+                my $job_id = &submit_job($seq_id, $seq_id);
+                my $job_info_str =
+                    sprintf('%s %s %d %d', $job_id, $seq_id, 0, $job_number);
+                push(@jobid_list, $job_info_str);
+            }
+            else {
+                print STDERR
+                    "Warning: line \"$line\" is not recognised as an identifier\n";
+            }
+
+            # Parallel mode, wait for job(s) to finish to free slots.
+            while ($params{'maxJobs'} > 1
+                && scalar(@jobid_list) >= $params{'maxJobs'}) {
+                &_job_list_poll(\@jobid_list);
+                print_debug_message('list_file_submit_job',
+                    'Remaining jobs: ' . scalar(@jobid_list), 1);
+            }
+        }
+    }
+    close $LISTFILE;
+
+    # Parallel mode, wait for remaining jobs to finish.
+    while ($params{'maxJobs'} > 1 && scalar(@jobid_list) > 0) {
+        &_job_list_poll(\@jobid_list);
+        print_debug_message('list_file_submit_job',
+            'Remaining jobs: ' . scalar(@jobid_list), 1);
+    }
+    print_debug_message('list_file_submit_job', 'End', 1);
+}
+{%- endif %}
+
 
 =head2 load_data()
 
@@ -1090,6 +1356,10 @@ sub get_results {
     print_debug_message('get_results', 'Begin', 1);
     my $jobid = shift;
     print_debug_message('get_results', 'jobid: ' . $jobid, 1);
+{%- if tool.id in ("ncbiblast", "fasta", "fastm", "psiblast", "psisearch", "hmmer3_phmmer", "hmmer3_hmmscan", "iprscan5", "pfamscan", "phobius", "pratt", "radar") %}
+    my $seq_id = shift;
+    print_debug_message('get_results', 'seq_id: ' . $seq_id, 1) if ($seq_id);
+{%- endif %}
 
     my $output_basename = $jobid;
 
@@ -1105,6 +1375,17 @@ sub get_results {
     if (defined($params{'outfile'})) {
         $output_basename = $params{'outfile'};
     }
+
+{%- if tool.id in ("ncbiblast", "fasta", "fastm", "psiblast", "psisearch", "hmmer3_phmmer", "hmmer3_hmmscan", "iprscan5", "pfamscan", "phobius", "pratt", "radar") %}
+    # Or use sequence identifer.
+    elsif (defined($params{'useSeqId'} && defined($seq_id) && $seq_id ne '')) {
+        $output_basename = $seq_id;
+
+        # Make safe to use as a file name.
+        $output_basename =~ s/\W/_/g;
+    }
+{%- endif %}
+
     # Use JobId if output file name is not defined
     else {
         unless (defined($params{'outfile'})) {
@@ -1281,6 +1562,13 @@ EMBL-EBI {{ tool.name }} Perl Client:
   --outfile             File name for results (default is JobId; for STDOUT).
 {%- if tool.id in ("hmmer3_phmmer", "hmmer3_hmmscan") %}
   --acc                 Get accession ID, how many from top. The default is 20.
+{%- endif %}
+{%- if tool.id in ("ncbiblast", "fasta", "fastm", "psiblast", "psisearch", "hmmer3_phmmer", "hmmer3_hmmscan", "iprscan5", "pfamscan", "phobius", "pratt", "radar") %}
+  --multifasta          Treat input as a set of fasta formatted sequences.
+  --useSeqId            Use sequence identifiers for output filenames.
+                        Only available in multi-fasta and multi-identifier modes.
+  --maxJobs             Maximum number of concurrent jobs. Only
+                        available in multifasta or list file modes.
 {%- endif %}
   --outformat           Result format(s) to retrieve. It accepts comma-separated values.
   --params              List input parameters.
