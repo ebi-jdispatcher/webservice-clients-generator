@@ -88,17 +88,20 @@ def fetch_python_options(name, parameter):
 
 
 def fetch_python_types(name, parameter):
-    type = parameter["type"]
-    if type == u'BOOLEAN':
-        return u'''\
-    if options.{0}:
-        params['{0}'] = True
+    if "sequence" not in name:
+        type = parameter["type"]
+        if type == u'BOOLEAN':
+            return u'''\
+        if options.{0}:
+            params['{0}'] = True
+        else:
+            params['{0}'] = False'''.format(name)
+        else:
+            return u'''\
+        if options.{0}:
+            params['{0}'] = options.{0}'''.format(name)
     else:
-        params['{0}'] = False'''.format(name)
-    else:
-        return u'''\
-    if options.{0}:
-        params['{0}'] = options.{0}'''.format(name)
+        return ''
 
 
 def fetch_python_usage(name, parameter):
