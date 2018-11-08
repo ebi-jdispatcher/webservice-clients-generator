@@ -88,20 +88,17 @@ def fetch_python_options(name, parameter):
 
 
 def fetch_python_types(name, parameter):
-    if "sequence" not in name:
-        type = parameter["type"]
-        if type == u'BOOLEAN':
-            return u'''\
-        if options.{0}:
-            params['{0}'] = True
-        else:
-            params['{0}'] = False'''.format(name)
-        else:
-            return u'''\
-        if options.{0}:
-            params['{0}'] = options.{0}'''.format(name)
+    type = parameter["type"]
+    if type == u'BOOLEAN':
+        return u'''\
+    if options.{0}:
+        params['{0}'] = True
     else:
-        return ''
+        params['{0}'] = False'''.format(name)
+    else:
+        return u'''\
+    if options.{0}:
+        params['{0}'] = options.{0}'''.format(name)
 
 
 def fetch_python_usage(name, parameter):
@@ -322,7 +319,8 @@ def main(lang, client="all"):
                     options.append(fetch_python_options(name, parameter))
                     if name in required_params:
                         usage_req.append(fetch_python_usage(name, parameter))
-                        tool[u'types'].append(fetch_python_types(name, parameter))
+                        if "sequence" not in name:
+                            tool[u'types'].append(fetch_python_types(name, parameter))
                     else:
                         usage_opt.append(fetch_python_usage(name, parameter))
                         values = get_python_default_values(name, parameter)
