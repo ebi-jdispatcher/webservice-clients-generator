@@ -276,10 +276,10 @@ def copy_java_build_contents(src, dest="dist"):
 
 
 @easyargs
-def main(lang, client="all"):
+def main(lang, client="all",
+         baseurl="https://www.ebi.ac.uk/Tools/services/rest/"):
     """Generates clients in 'Python', 'Perl' or 'Java'"""
 
-    baseurl = "https://www.ebi.ac.uk/Tools/services/rest/"
     lang = lang.lower().split(",")
     client = client.lower().split(",")
     required_params = ["sequence", "asequence", "bsequence",
