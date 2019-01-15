@@ -44,7 +44,7 @@ def details_of(url, param_name):
     details = ET.fromstring(response)
     values = {detail.tag: detail.text for detail in details}
 
-    default_values = {'protein':  None, 'nucleotide': None, 'vector': None, 'generic': None}
+    default_values = {'protein': [], 'nucleotide': [], 'vector': [], 'generic': []}
     if param_name != "stype":
         param = xmltodict.parse(response)
         for key, val in param['parameter'].items():
@@ -65,12 +65,12 @@ def details_of(url, param_name):
                                                 # all contexts == same as defaultValue
                                                 for key in ["protein", "nucleotide", "vector"]:
                                                     if key in pro['value']:
-                                                        default_values[key] = value['value']
+                                                        default_values[key].append(value['value'])
 
                         # else try find generic 'defaultValue'
-                        elif 'defaultValue' in value and 'value' in value:
+                        if 'defaultValue' in value and 'value' in value:
                             if value['defaultValue'] == 'true':
-                                default_values['generic'] = value['value']
+                                default_values['generic'].append(value['value'])
     values["default_values"] = default_values
     return values
 
@@ -117,18 +117,18 @@ def fetch_python_usage(name, parameter):
 
 def get_python_default_values(name, parameter):
     string = ""
-    if (parameter['default_values']['protein'] is not None and
-            parameter['default_values']['nucleotide'] is not None and
-            parameter['default_values']['vector'] is not None):
+    if (parameter['default_values']['protein'] != [] and
+            parameter['default_values']['nucleotide'] != [] and
+            parameter['default_values']['vector'] != []):
         for key in ["protein", "nucleotide", "vector"]:
             string += ("    if options.stype == '%s':\n"
                        "        if not options.%s:\n"
                        "            params['%s'] = '%s'\n" % (key, name, name,
-                                                              parameter['default_values'][key]))
-    elif parameter['default_values']['generic'] is not None:
+                                                              ",".join(parameter['default_values'][key])))
+    elif parameter['default_values']['generic'] != []:
         string += ("    if not options.%s:\n"
                    "        params['%s'] = '%s'\n"
-                   "" % (name, name, parameter['default_values']['generic']))
+                   "" % (name, name, ",".join(parameter['default_values']['generic'])))
 
     if string == "" and parameter["type"] == u'BOOLEAN':
         string += """\
@@ -173,18 +173,18 @@ def fetch_perl_usage(name, parameter):
 
 def get_perl_default_values(name, parameter):
     string = ""
-    if (parameter['default_values']['protein'] is not None and
-            parameter['default_values']['nucleotide'] is not None and
-            parameter['default_values']['vector'] is not None):
+    if (parameter['default_values']['protein'] != [] and
+            parameter['default_values']['nucleotide'] != [] and
+            parameter['default_values']['vector'] != []):
         for key in ["protein", "nucleotide", "vector"]:
             string += ("    if ($params{'stype'} eq '%s') {\n"
                        "        if (!$params{'%s'}) {\n"
                        "            $params{'%s'} = '%s'\n        }\n    }\n"
-                       % (key, name, name, parameter['default_values'][key]))
-    elif parameter['default_values']['generic'] is not None:
+                       % (key, name, name, ",".join(parameter['default_values'][key])))
+    elif parameter['default_values']['generic'] != []:
         string += ("    if (!$params{'%s'}) {\n"
                    "        $params{'%s'} = '%s'\n    }\n"
-                   "" % (name, name, parameter['default_values']['generic']))
+                   "" % (name, name, ",".join(parameter['default_values']['generic'])))
 
     if string == "" and parameter["type"] == u'BOOLEAN':
         string += """\
@@ -226,19 +226,19 @@ def fetch_java_clients(name):
 
 def get_java_default_values(name, parameter):
     string = ""
-    if (parameter['default_values']['protein'] is not None and
-            parameter['default_values']['nucleotide'] is not None and
-            parameter['default_values']['vector'] is not None):
+    if (parameter['default_values']['protein'] != [] and
+            parameter['default_values']['nucleotide'] != [] and
+            parameter['default_values']['vector'] != []):
         for key in ["protein", "nucleotide", "vector"]:
             string += ('        if (cli.hasOption("stype") && cli.getOptionValue("stype") == "%s") {\n'
                        '            if (cli.hasOption("%s") == false) {\n'
                        '                form.putSingle("%s", "%s");\n'
-                       '            }\n        }\n' % (key, name, name, parameter['default_values'][key]))
+                       '            }\n        }\n' % (key, name, name, ",".join(parameter['default_values'][key])))
 
-    elif parameter['default_values']['generic'] is not None:
+    elif parameter['default_values']['generic'] != []:
         string += ('        if (cli.hasOption("%s") == false)\n'
                    '           form.putSingle("%s", "%s");\n'
-                   '' % (name, name, parameter['default_values']['generic']))
+                   '' % (name, name, ",".join(parameter['default_values']['generic'])))
 
     if string == "" and parameter["type"] == u'BOOLEAN':
         string += """\
