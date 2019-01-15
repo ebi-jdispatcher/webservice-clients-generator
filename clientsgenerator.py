@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import os
 import shutil
+import datetime
 import textwrap
 import requests
 import subprocess
@@ -284,6 +285,7 @@ def main(lang, client="all",
     client = client.lower().split(",")
     required_params = ["sequence", "asequence", "bsequence",
                        "email", "program", "stype", "database"]
+    datetimenow = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     if "python" in lang:
         # Python clients
         template = Environment(loader=FileSystemLoader(u'.')) \
@@ -306,6 +308,7 @@ def main(lang, client="all",
                         u'usage_opt': [],
                         u'types': [],
                         u'default_values': [],
+                        u'client_version': datetimenow,
                         }
 
                 tool[u'description'], parameters = tool_from(tool[u'url'])
@@ -356,6 +359,7 @@ def main(lang, client="all",
                         u'usage_req': [],
                         u'usage_opt': [],
                         u'default_values': [],
+                        u'client_version': datetimenow,
                         }
 
                 tool[u'description'], parameters = tool_from(tool[u'url'])
@@ -417,6 +421,7 @@ def main(lang, client="all",
                         u'usage_opt': [],
                         u'usage': [],
                         u'default_values': [],
+                        u'client_version': datetimenow,
                         }
 
                 tool[u'description'], parameters = tool_from(tool[u'url'])

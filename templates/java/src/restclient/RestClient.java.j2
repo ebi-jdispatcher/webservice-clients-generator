@@ -53,6 +53,7 @@ public class RestClient{{ tool.id }} {
     private final String defaultHost = "{{ tool.hostname }}";
     private final String defaultProtocol = "https";
     private final String defaultUrlPath = "/Tools/services/rest/";
+    public String version = "{{ tool.client_version }}";
     public int outputLevel = 1;
     public int debugLevel = 0;
     public int pollFreq = 3;
@@ -91,6 +92,7 @@ public class RestClient{{ tool.id }} {
                                    + "  --params              List input parameters.\n"
                                    + "  --paramDetail         Display details for input parameter.\n"
                                    + "  --verbose             Increase output.\n"
+                                   + "  --version             Prints out the version of the Client and exit.\n"
                                    + "  --quiet               Decrease output.\n"
                                    + "  --baseUrl             Base URL. Defaults to:\n"
                                    + "                        {{ tool.url }}\n"
@@ -163,7 +165,7 @@ public class RestClient{{ tool.id }} {
     private void setUserAgent() {
         String currentUserAgent = System.getProperty("http.agent");
 
-        String clientVersion = revision;
+        String clientVersion = String.format("Revision: %s", version);
         String clientUserAgent = "EBI-Sample-Client/" + clientVersion + " (" + this.getClass().getName() + "; " + System.getProperty("os.name") + ")";
         if (currentUserAgent != null) {
             System.setProperty("http.agent", clientUserAgent + " " + currentUserAgent);
@@ -268,6 +270,7 @@ public class RestClient{{ tool.id }} {
         allOptions.addOption("outformat", "", true, "Output format.");
         allOptions.addOption("quiet", "", false, "Decrease output level.");
         allOptions.addOption("verbose", "", false, "Increase output level.");
+        allOptions.addOption("version", "", false, "Prints out the version of the Client and exit.");
         allOptions.addOption("debugLevel", "", true, "Debugging level.");
         allOptions.addOption("baseUrl", "", true, "Custom host.");
     }
@@ -441,7 +444,11 @@ public class RestClient{{ tool.id }} {
                     printDebugMessage("run", "Returned WsParameter object is null", 41);
                 }
             }
-
+            // Print Client version
+            else if (cli.hasOption("version")) {
+              System.out.println(String.format("Revision: %s", version));
+              System.exit(0);
+            }
             // Submit new job
             else if (cli.hasOption("email") && (sequence != null || (asequence != null && bsequence != null))) {
 
