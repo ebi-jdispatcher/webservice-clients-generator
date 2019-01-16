@@ -1,6 +1,6 @@
 # Web Service Clients Generator
 
-`clientsgenerator.py` allows auto-generation of Sample CLI Clients for 
+`clientsgenerator.py` allows auto-generation of Sample CLI Clients for
 [EMBL-EBI's Job Dispatcher Web Service Bioinformatics Tools](https://www.ebi.ac.uk/services).
 
 ## How to use it
@@ -11,9 +11,9 @@ Download the source code or clone the repository:
 git clone https://github.com/ebi-wp/webservice-clients-generator.git
 ```
 
-Specially if you have no root access to your machine, you might need to 
+Specially if you have no root access to your machine, you might need to
 use [virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/).
-Prepare a virtual environment where all the Python dependencies will be installed. 
+Prepare a virtual environment where all the Python dependencies will be installed.
 This project has been developed and tested with Python 3.6.5.
 
 ```bash
@@ -28,12 +28,12 @@ A full list of Python dependencies is provided in [requirements.txt](requirement
 pip install --upgrade -r requirements.txt
 ```
 
-Now run the program to generate python clients for all supported EBI tools, they will be placed in the `dist` folder. 
+Now run the program to generate python clients for all supported EBI tools, they will be placed in the `dist` folder.
 All available clients are listed in [clients.ini](clients.ini).
 
 ## Generating clients
 
-Run the following commands to generate Python, Perl and Java clients for all the Bioinformatics tools provided. 
+Run the following commands to generate Python, Perl and Java clients for all the Bioinformatics tools provided.
 
 ```bash
 # only python clients
@@ -45,7 +45,7 @@ python clientsgenerator.py python
 python clientsgenerator.py python,perl,java
 ```
 
-Alternatively, use `--client <client_name>` to get only a selected client. 
+Alternatively, use `--client <client_name>` to get only a selected client.
 
 ```bash
 python clientsgenerator.py python,perl,java --client clustalo
@@ -64,15 +64,13 @@ python dist/clustalo.py --email <your@email.com> --sequence sp:wap_rat,sp:wap_mo
 
 ### Perl clients
 
-In order to run Perl clients, Perl (tested version 5.22.0) needs to installed as well as two dependencies 
+In order to run Perl clients, Perl (tested version 5.22.0) needs to installed as well as two dependencies
 (LWP and XML::Simple). Install these with:
 
 ```bash
 # To install Perl dependencies run (you might need sudo)
 cpan LWP
 cpan XML::Simple
-# only for HMMER3 clients
-cpan JSON::XS
 ```
 
 An example test for Clustal Omega Perl client:
@@ -83,8 +81,8 @@ perl dist/clustalo.pl --email <your@email.com> --sequence sp:wap_rat,sp:wap_mous
 
 ### Java clients
 
-In order to run Java clients, Java (tested version 1.8.0_161") as well as ant (tested version 1.10.5), 
-needs to installed. 
+In order to run Java clients, Java (tested version 1.8.0_161") as well as ant (tested version 1.10.5),
+needs to installed.
 
 The Java source code needs to be compiled with `ant` as follows:
 ```bash
