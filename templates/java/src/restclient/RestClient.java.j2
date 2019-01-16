@@ -80,7 +80,7 @@ public class RestClient{{ tool.id }} {
 {% endif %}
                                    + "\n[General]\n"
                                    + "  -h, --help            Show this help message and exit.\n"
-                                   + "  --async               Forces to make an asynchronous query.\n"
+                                   + "  --asyncjob            Forces to make an asynchronous query.\n"
                                    + "  --title               Title for job.\n"
                                    + "  --status              Get job status.\n"
                                    + "  --resultTypes         Get available result types for job.\n"
@@ -105,7 +105,7 @@ public class RestClient{{ tool.id }} {
                                    + "Asynchronous job:\n"
                                    + "  Use this if you want to retrieve the results at a later time. The results\n"
                                    + "  are stored for up to 24 hours.\n"
-                                   + "  Usage: java -jar {{ tool.id }}.jar --async --email <your@email.com> [options...] <SeqFile|SeqID(s)>\n"
+                                   + "  Usage: java -jar {{ tool.id }}.jar --asyncjob --email <your@email.com> [options...] <SeqFile|SeqID(s)>\n"
                                    + "  Returns: jobid\n"
                                    + "\n"
                                    + "Check status of Asynchronous job:\n"
@@ -263,7 +263,7 @@ public class RestClient{{ tool.id }} {
         allOptions.addOption("paramDetail", "", true, "Details about selected parameter.");
         allOptions.addOption("title", "", true, "Title for the job.");
         allOptions.addOption("jobid", "", true, "Job identifier.");
-        allOptions.addOption("async", "", false, "Run job as an asynchronous task, (default: synchronous).");
+        allOptions.addOption("asyncjob", "", false, "Run job as an asynchronous task, (default: synchronous).");
         allOptions.addOption("status", "", false, "Status of a job.");
         allOptions.addOption("resultTypes", "", false, "Get list of output formats.");
         allOptions.addOption("polljob", "", false, "Get results for the job.");
@@ -462,7 +462,7 @@ public class RestClient{{ tool.id }} {
 
                 if (jobid != null) {
                     // Asynchronous (default) execution
-                    if (cli.hasOption("async")) {
+                    if (cli.hasOption("asyncjob")) {
                         System.out.println(jobid);
                         printDebugMessage("run", String.format("You can check status of your job with:\n" +
                                                  "java -jar {{ tool.id }}.jar --status --jobid %s\n", jobid), 11);
@@ -612,7 +612,7 @@ public class RestClient{{ tool.id }} {
             String optionType = option.getLongOpt();
             String optionValue = option.getValue();
 
-            if (optionName.equals("sequence") || optionName.equals("async")) {
+            if (optionName.equals("sequence") || optionName.equals("asyncjob")) {
                 continue;
             }
 
