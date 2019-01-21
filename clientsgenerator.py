@@ -4,6 +4,7 @@
 from __future__ import print_function
 
 import os
+import sys
 import shutil
 import datetime
 import textwrap
@@ -287,7 +288,10 @@ def write_client(filename, contents, dir="dist"):
     if not os.path.isdir(dir):
         os.mkdir(dir)
     with open(os.path.join(dir, filename), 'w') as fh:
-        fh.write(contents)
+        if sys.version_info.major < 3:
+            fh.write(contents.encode('ascii', 'ignore').decode('ascii'))
+        else:
+            fh.write(contents.encode('utf-8', 'ignore').decode('utf-8'))
 
 
 def copy_java_build_contents(src, dest="dist"):
@@ -365,7 +369,7 @@ def main(lang, client="all",
                 tool[u'default_values'] = "\n".join(def_values)
                 contents = generate_client(tool, template)
                 write_client(tool[u'filename'], contents)
-                print("Generated Python client for %s" % tool['url'], flush=True)
+                print("Generated Python client for %s" % tool['url'])
 
     if "perl" in lang:
         # Perl clients
@@ -413,7 +417,7 @@ def main(lang, client="all",
                 tool[u'default_values'] = "\n".join(def_values)
                 contents = generate_client(tool, template)
                 write_client(tool[u'filename'], contents)
-                print("Generated Perl client for %s" % tool['url'], flush=True)
+                print("Generated Perl client for %s" % tool['url'])
 
     if "java" in lang:
         # Java clients
@@ -478,7 +482,7 @@ def main(lang, client="all",
                 write_client(tool[u'filename_client'], contents_client)
                 write_client(tool[u'filename_utils'], contents_utils)
                 clients.append(fetch_java_clients(idtool))
-                print("Generated Java client for %s" % tool['url'], flush=True)
+                print("Generated Java client for %s" % tool['url'])
 
         buildxml["clients"] = "\n".join(clients)
         contents_xml = generate_client(buildxml, template_xml)
