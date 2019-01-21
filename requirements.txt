@@ -1,11 +1,4 @@
-certifi==2018.10.15
-chardet==3.0.4
-easyargs==0.9.4
-idna==2.7
-Jinja2==2.10
-MarkupSafe==1.0
-requests==2.20.0
-six==1.11.0
-urllib3==1.24
-xmltramp2==3.1.1
-xmltodict==0.11.0
+requests
+Jinja2
+xmltodict
+easyargs
