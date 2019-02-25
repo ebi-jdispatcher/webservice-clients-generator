@@ -163,7 +163,7 @@ def fetch_perl_options(name, parameter):
                  ((15 - len(name)) * " "), escape(parameter["description"]).strip()))
     else:
         return ("    '%s%s'%s=> \$params{'%s'},%s# %s" %
-                (name, ("=" + "%s" % parameter["type"][0].lower().replace("c", "s").replace("d", "f")),
+                (name, ("=" + "%s" % parameter["type"][0].lower().replace("c", "s").replace("d", "f").replace("a", "s")),
                  ((14 - len(name)) * " "), name,
                  ((15 - len(name)) * " "), escape(parameter["description"]).strip()))
 
