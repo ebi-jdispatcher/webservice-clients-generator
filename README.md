@@ -81,13 +81,17 @@ perl dist/clustalo.pl --email <your@email.com> --sequence sp:wap_rat,sp:wap_mous
 
 ### Java clients
 
-In order to run Java clients, Java (tested version 1.8.0_161") as well as ant (tested version 1.10.5),
-needs to installed.
+In order to run Java clients, Java (tested version 1.8.0_161") as well as ant (tested version 1.10.5), needs to installed. Note that Java 9 and above are not 
+currently supported. There are different build instructions for Windows and 
+Linux clients.
+
+#### Windows
 
 The Java source code needs to be compiled with `ant` as follows:
 ```bash
-# if ant build fails on the first run, try the command again
-cd dist && ant -lib lib && rm -rf bin lib && cd -
+# if ant build fails on the first run, try the ant command line again
+cd dist
+ant -lib lib && rm -rf bin lib && cd -
 ```
 
 An example test for Clustal Omega Java client:
@@ -95,6 +99,23 @@ An example test for Clustal Omega Java client:
 ```bash
 java -jar dist/clustalo.jar --email <your@email.com> --sequence sp:wap_rat,sp:wap_mouse,sp:wap_pig
 ```
+
+#### Linux and OSX
+
+The Java source code needs to be compiled:
+
+```bash
+cd dist && ./make_jars.sh
+```
+
+This creates JARS files which can be executed directly. An example test for Clustal Omega Java client:
+
+```bash
+dist/clustalo.jar --email <your@email.com> --sequence sp:wap_rat,sp:wap_mouse,sp:wap_pig
+```
+
+The windows example above using java -jar will also work. 
+
 
 ## Documentation
 
