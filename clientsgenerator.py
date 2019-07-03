@@ -83,8 +83,12 @@ def fetch_python_options(name, parameter):
         return ("parser.add_option('--%s', action='store_true', help=('%s'))"
                 "" % (name, "'\n                  '".
                       join(textwrap.wrap(escape(parameter["description"]).strip().replace("'", ""), width=70))))
+    elif type == u'INTEGER':
+        return ("parser.add_option('--%s', type=int, help=('%s'))"
+                "" % (name, "'\n                  '".
+                      join(textwrap.wrap(escape(parameter["description"]).strip().replace("'", ""), width=70))))
     else:
-        return ("parser.add_option('--%s', help=('%s'))"
+        return ("parser.add_option('--%s', type=str, help=('%s'))"
                 "" % (name, "'\n                  '".
                       join(textwrap.wrap(escape(parameter["description"]).strip().replace("'", ""), width=70))))
 
@@ -127,18 +131,28 @@ def get_python_default_values(name, parameter):
             if parameter['default_values'][key] != [None]:
                 def_val = ",".join(parameter['default_values'][key])
                 if len(parameter['default_values'][key]) == 1:
-                    string += ("    if options.stype == '%s':\n"
-                               "        if not options.%s:\n"
-                               "            params['%s'] = '%s'\n" % (key, name, name, def_val))
+                    if parameter["type"] == u'INTEGER':
+                        string += ("    if options.stype == '%s':\n"
+                                   "        if not options.%s:\n"
+                                   "            params['%s'] = %s\n" % (key, name, name, def_val))
+                    else:
+                        string += ("    if options.stype == '%s':\n"
+                                   "        if not options.%s:\n"
+                                   "            params['%s'] = '%s'\n" % (key, name, name, def_val))
     elif parameter['default_values']['generic'] != []:
         if 'true' in parameter['default_values']['generic'] and 'false' in parameter['default_values']['generic']:
             parameter['default_values']['generic'] = ['true']
         if parameter['default_values']['generic'] != [None]:
             def_val = ",".join(parameter['default_values']['generic'])
             if len(parameter['default_values']['generic']) == 1:
-                string += ("    if not options.%s:\n"
-                           "        params['%s'] = '%s'\n"
-                           "" % (name, name, def_val))
+                if parameter["type"] == u'INTEGER':
+                    string += ("    if not options.%s:\n"
+                               "        params['%s'] = %s\n"
+                               "" % (name, name, def_val))
+                else:
+                    string += ("    if not options.%s:\n"
+                               "        params['%s'] = '%s'\n"
+                               "" % (name, name, def_val))
 
     if string == "" and parameter["type"] == u'BOOLEAN':
         string += """\
@@ -192,19 +206,30 @@ def get_perl_default_values(name, parameter):
             if parameter['default_values'][key] != [None]:
                 def_val = ",".join(parameter['default_values'][key])
                 if len(parameter['default_values'][key]) == 1:
-                    string += ("    if ($params{'stype'} eq '%s') {\n"
-                               "        if (!$params{'%s'}) {\n"
-                               "            $params{'%s'} = '%s'\n        }\n    }\n"
-                               % (key, name, name, def_val))
+                    if parameter["type"] == u'INTEGER':
+                        string += ("    if ($params{'stype'} eq '%s') {\n"
+                                   "        if (!$params{'%s'}) {\n"
+                                   "            $params{'%s'} = %s\n        }\n    }\n"
+                                   % (key, name, name, def_val))
+                    else:
+                        string += ("    if ($params{'stype'} eq '%s') {\n"
+                                   "        if (!$params{'%s'}) {\n"
+                                   "            $params{'%s'} = '%s'\n        }\n    }\n"
+                                   % (key, name, name, def_val))
     elif parameter['default_values']['generic'] != []:
         if 'true' in parameter['default_values']['generic'] and 'false' in parameter['default_values']['generic']:
             parameter['default_values']['generic'] = ['true']
         if parameter['default_values']['generic'] != [None]:
             def_val = ",".join(parameter['default_values']['generic'])
             if len(parameter['default_values']['generic']) == 1:
-                string += ("    if (!$params{'%s'}) {\n"
-                           "        $params{'%s'} = '%s'\n    }\n"
-                           "" % (name, name, def_val))
+                if parameter["type"] == u'INTEGER':
+                    string += ("    if (!$params{'%s'}) {\n"
+                               "        $params{'%s'} = %s\n    }\n"
+                               "" % (name, name, def_val))
+                else:
+                    string += ("    if (!$params{'%s'}) {\n"
+                               "        $params{'%s'} = '%s'\n    }\n"
+                               "" % (name, name, def_val))
 
     if string == "" and parameter["type"] == u'BOOLEAN':
         string += """\
