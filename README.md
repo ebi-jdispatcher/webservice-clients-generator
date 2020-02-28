@@ -81,7 +81,7 @@ perl dist/clustalo.pl --email <your@email.com> --sequence sp:wap_rat,sp:wap_mous
 
 ### Java clients
 
-In order to run Java clients, Java (tested version 1.8.0_161") as well as ant (tested version 1.10.5), needs to installed. Note that Java 9 and above are not 
+In order to run Java clients, OpenJDK 8 (tested version 1.8.0_161") as well as ant (tested version 1.10.5), needs to installed. Note that OpenJDK 9 and above are not 
 currently supported. There are different build instructions for Windows and 
 Linux clients.
 
