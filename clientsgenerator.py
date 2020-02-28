@@ -170,11 +170,15 @@ def get_python_default_values(name, parameter):
     return string
 
 
-def fetch_perl_options(name, parameter):
+def fetch_perl_options(name, parameter, database=False):
     if parameter["type"] == u'BOOLEAN':
         return ("    '%s%s'%s=> \$params{'%s'},%s# %s" %
                 (name, "", ((16 - len(name)) * " "), name,
                  ((15 - len(name)) * " "), escape(parameter["description"]).strip()))
+    elif database:
+        return ("    '%s%s'%s=> \@database,%s# %s" %
+                (name, "=s", ((14 - len(name)) * " "),
+                 ((25 - len(name)) * " "), escape(parameter["description"]).strip()))
     else:
         return ("    '%s%s'%s=> \$params{'%s'},%s# %s" %
                 (name, ("=" + "%s" % parameter["type"][0].lower().replace("c", "s").replace("d", "f").replace("a", "s")),
@@ -427,7 +431,8 @@ def main(lang, client="all",
 
                 options, usage_opt, usage_req, types, def_values = [], [], [], [], []
                 for (name, parameter) in parameters.items():
-                    options.append(fetch_perl_options(name, parameter))
+                    options.append(fetch_perl_options(name, parameter,
+                                                      database=True if name == "database" else False))
                     if name in required_params:
                         usage_req.append(fetch_perl_usage(name, parameter))
                     else:
