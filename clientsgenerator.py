@@ -432,7 +432,7 @@ def main(lang, client="all",
                 options, usage_opt, usage_req, types, def_values = [], [], [], [], []
                 for (name, parameter) in parameters.items():
                     options.append(fetch_perl_options(name, parameter,
-                                                      database=True if name == "database" else False))
+                                                      database=False if name == "database" else False))
                     if name in required_params:
                         usage_req.append(fetch_perl_usage(name, parameter))
                     else:

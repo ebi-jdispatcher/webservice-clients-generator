@@ -80,7 +80,7 @@ my %params = (
     'debugLevel' => 0,
     'maxJobs'    => 1
 );
-{% if tool.id in ("ncbiblast", "fasta", "fastm", "psiblast", "psisearch", "psisearch2", "hmmer3_phmmer", "hmmer3_hmmscan", "pfamscan") %}my @database;{% endif %}
+{% if tool.id in ("ncbiblast", "fasta", "fastm", "psiblast", "psisearch", "psisearch2", "hmmer3_phmmer", "pfamscan") %}my @database;{% endif %}
 # Default parameter values (should get these from the service)
 GetOptions(
 {%- if tool.options is defined %}
@@ -116,7 +116,7 @@ if ($params{'verbose'}) {$outputLevel++}
 if ($params{'quiet'}) {$outputLevel--}
 if ($params{'pollFreq'}) {$checkInterval = $params{'pollFreq'} * 1000 * 1000}
 if ($params{'baseUrl'}) {$baseUrl = $params{'baseUrl'}}
-{% if tool.id in ("ncbiblast", "fasta", "fastm", "psiblast", "psisearch", "psisearch2", "hmmer3_phmmer", "hmmer3_hmmscan", "pfamscan") %}$params{"database"} = [@database];{% endif %}
+{% if tool.id in ("ncbiblast", "fasta", "fastm", "psiblast", "psisearch", "psisearch2", "hmmer3_phmmer", "pfamscan") %}$params{"database"} = [@database];{% endif %}
 
 # Debug mode: LWP version
 &print_debug_message('MAIN', 'LWP::VERSION: ' . $LWP::VERSION,
@@ -761,23 +761,34 @@ sub submit_job {
     my $param_hmmdb = $params{'database'};
     if ($param_hmmdb eq 'treefam') {
         $db_index = "2";
+        $params{'hmmdbparam'} = '56371';
     }
     if ($param_hmmdb eq 'gene3d') {
         $db_index = "3";
+        $params{'hmmdbparam'} = '53371';
     }
     if ($param_hmmdb eq 'pfam' || $param_hmmdb eq 'Pfam') {
         $params{'database'} = 'pfam';
         $db_index = "4";
+        $params{'hmmdbparam'} = '51371';
+    }
+    if ($param_hmmdb eq 'pfama' || $param_hmmdb eq 'Pfama') {
+        $params{'database'} = 'pfama';
+        $db_index = "4";
+        $params{'hmmdbparam'} = '57371';
     }
     if ($param_hmmdb eq 'superfamily') {
         $db_index = "5";
+        $params{'hmmdbparam'} = '55371';
     }
     if ($param_hmmdb eq 'tigrfam' || $param_hmmdb eq 'Tigrfam') {
         $params{'database'} = 'tigrfam';
         $db_index = "6";
+        $params{'hmmdbparam'} = '52371';
     }
     if ($param_hmmdb eq 'pirsf') {
         $db_index = "7";
+        $params{'hmmdbparam'} = '54371';
     }
 {%-  endif %}
 
