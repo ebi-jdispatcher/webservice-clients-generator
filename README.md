@@ -116,17 +116,14 @@ dist/clustalo.jar --email <your@email.com> --sequence sp:wap_rat,sp:wap_mouse,sp
 
 The windows example above using java -jar will also work.
 
-
 ## Documentation
 
 More documentation about [EMBL-EBI Bioinformatics Web Services](https://www.ebi.ac.uk/seqdb/confluence/display/WEBSERVICES/EMBL-EBI+Web+Services)
-
 
 ## Contact and Support
 
 If you have any problems, suggestions or comments for our services please
 contact us via [EBI Support](https://www.ebi.ac.uk/support/index.php?query=WebServices).
-
 
 ## License
 The European Bioinformatics Institute - [EMBL-EBI](https://www.ebi.ac.uk/), is an Intergovernmental Organization which, as part of the European Molecular Biology Laboratory family, focuses on research and services in bioinformatics.  
