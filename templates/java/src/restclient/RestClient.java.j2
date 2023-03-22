@@ -310,6 +310,7 @@ public class RestClient{{ tool.id }} {
     /**
      * Status of a given job.
      * The values for the status are:
+     * QUEUED: the job is currently queued.
      * RUNNING: the job is currently being processed.
      * FINISHED: job has finished, and the results can then be retrieved.
      * ERROR: an error occurred attempting to get the job status.
@@ -499,7 +500,7 @@ public class RestClient{{ tool.id }} {
             else if (cli.hasOption("jobid") && (cli.hasOption("resultTypes") || cli.hasOption("polljob"))) {
                 String jobid = cli.getOptionValue("jobid");
                 final String status = checkStatus(jobid);
-                if (status == "PENDING" || status == "RUNNING"){
+                if (status == "QUEUED" || status == "RUNNING"){
                     System.out.println("Error: Job status is " + status
                                        + ". To get result types the job must be finished.");
                     System.exit(0);
