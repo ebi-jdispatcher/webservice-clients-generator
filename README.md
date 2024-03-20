@@ -8,7 +8,7 @@
 Download the source code or clone the repository:
 
 ```bash
-git clone https://github.com/ebi-wp/webservice-clients-generator.git
+git clone https://github.com/ebi-jdispatcher/webservice-clients-generator.git
 ```
 
 Specially if you have no root access to your machine, you might need to
