@@ -120,7 +120,7 @@ def fetch_python_usage(name, parameter):
                  join(textwrap.wrap(escape(parameter["description"]).strip(), width=60)))).rstrip(".") + "."
 
 
-def get_python_default_values(name, parameter):
+def get_python_default_values(name, parameter, tool=None):
     string = ""
     if (parameter['default_values']['protein'] != [] and
             parameter['default_values']['nucleotide'] != [] and
@@ -162,7 +162,17 @@ def get_python_default_values(name, parameter):
         params['%s'] = 'false'
     \n""" % (name, name, name)
 
-    string += """\
+    if tool == "psiblast" and name == "selectedHits":
+        string += f"""\
+    if options.{name}:
+        {name} = options.{name}
+        if os.path.exists({name}):
+            with open({name}) as f:
+                {name} = "".join(f.readlines())
+        params['{name}'] = {name}
+    \n"""
+    else:
+        string += """\
     if options.%s:
         params['%s'] = options.%s
     \n""" % (name, name, name)
@@ -388,7 +398,7 @@ def main(lang, client="all",
                             tool[u'types'].append(fetch_python_types(name, parameter))
                     else:
                         usage_opt.append(fetch_python_usage(name, parameter))
-                        values = get_python_default_values(name, parameter)
+                        values = get_python_default_values(name, parameter, tool=tool["id"])
                         if values != "":
                             def_values.append(values)
 
